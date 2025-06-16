@@ -1,0 +1,13 @@
+# Ignoruj środowisko wirtualne
+.venv/
+venv/
+ENV/
+env/
+
+# Ignoruj pliki cache Pythona
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ignoruj pliki i katalogi PyCharm
+.idea/
