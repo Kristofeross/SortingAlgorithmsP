@@ -1,8 +1,5 @@
 # Ignoruj środowisko wirtualne
 .venv/
-venv/
-ENV/
-env/
 
 # Ignoruj pliki cache Pythona
 __pycache__/
