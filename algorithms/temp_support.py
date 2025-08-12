@@ -76,12 +76,12 @@ def get_total_usage(proc):
     except psutil.NoSuchProcess:
         return 0.0, 0.0
 
-    total_cpu = proc.cpu_percent(interval=None)
+    total_cpu = proc.cpu_percent(interval=0.05)
     total_mem = proc.memory_info().rss / (1024 ** 2)
 
     for child in children:
         try:
-            total_cpu += child.cpu_percent(interval=None)
+            total_cpu += child.cpu_percent(interval=0.0)
             total_mem += child.memory_info().rss / (1024 ** 2)
         except psutil.NoSuchProcess:
             pass
@@ -95,7 +95,7 @@ def measure_usage(main_proc, interval, cpu_samples, mem_samples, stop_flag):
         mem_samples.append(mem_now)
         time.sleep(interval)
 
-def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", repeat=2, sample_interval=0.1):
+def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", repeat=8, sample_interval=0.1):
     total_time = 0.0
     total_cpu = 0.0
     total_mem = 0.0
