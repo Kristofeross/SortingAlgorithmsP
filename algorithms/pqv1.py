@@ -49,15 +49,12 @@ if __name__ == "__main__":
     data = test_get_data()
     cores = test_cores()
     max_depth = int(math.log2(cores))
-    # sorted_seq = sequence_quicksot(data)
+
+    # Sorted quicksort
     sorted_seq = profile_function(quicksort, data, label="Sekwencyjny quicksort")
 
     # Parallel quicksort with Process
-    start = time.perf_counter()
     sorted_par = profile_function(parallel_quicksort, data, max_depth, label="Równoległy quicksort")
-    # sorted_par = parallel_quicksort(data, max_depth=max_depth)
-    end = time.perf_counter()
-    print(f"\nPo sortowaniu równoległym (czas): {end - start:.6f} s")
 
     # Check correctness
     assert sorted_seq == sorted_par, "Błąd: wyniki sortowania się różnią!"

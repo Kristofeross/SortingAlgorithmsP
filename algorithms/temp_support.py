@@ -11,6 +11,8 @@ import psutil
 import os
 import threading
 
+import datetime
+
 def get_data_from_db(table_name, set_size, db_path="../dane.db"):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
@@ -88,12 +90,18 @@ def get_total_usage(proc):
 
     return total_cpu, total_mem
 
-def measure_usage(main_proc, interval, cpu_samples, mem_samples, stop_flag):
+
+def measure_usage(main_proc, interval, cpu_samples, mem_samples, states, stop_flag):
     while not stop_flag.is_set():
         cpu_now, mem_now = get_total_usage(main_proc)
         cpu_samples.append(cpu_now)
         mem_samples.append(mem_now)
+
+        state = "idle" if cpu_now < 5 else "active"  # Próg 5% CPU
+        states.append(state)
+
         time.sleep(interval)
+
 
 def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", repeat=8, sample_interval=0.1):
     total_time = 0.0
@@ -110,8 +118,10 @@ def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", re
 
         cpu_samples = []
         mem_samples = []
+        states = []
         stop_flag = threading.Event()
-        measurer = threading.Thread(target=measure_usage, args=(main_proc, sample_interval, cpu_samples, mem_samples, stop_flag))
+        measurer = threading.Thread(target=measure_usage,
+                                    args=(main_proc, sample_interval, cpu_samples, mem_samples, states, stop_flag))
 
         if run == 0:
             pr.enable()
@@ -131,11 +141,24 @@ def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", re
         avg_cpu_run = sum(cpu_samples) / len(cpu_samples) if cpu_samples else 0
         avg_mem_run = sum(mem_samples) / len(mem_samples) if mem_samples else 0
 
+        active_time = states.count("active") * sample_interval
+        idle_time = states.count("idle") * sample_interval
+
+        print(f"Run {run + 1}: CPU avg={avg_cpu_run:.2f}%, RAM avg={avg_mem_run:.2f} MB, "
+              f"Active time={active_time:.2f}s, Idle time={idle_time:.2f}s, Total time={end_time - start_time:.4f}s")
+
+        # Save to file
+        # filename = f"profile_{label.replace(' ', '_')}_run{run + 1}.txt"
+        # with open(filename, 'w') as f:
+        #     timestamp = start_time
+        #     for i in range(len(cpu_samples)):
+        #         line = f"timestamp: {timestamp:.2f}, cpu_percent: {cpu_samples[i]:.2f}, ram_MB: {mem_samples[i]:.2f}, state: {states[i]}\n"
+        #         f.write(line)
+        #         timestamp += sample_interval
+
         total_time += (end_time - start_time)
         total_cpu += avg_cpu_run
         total_mem += avg_mem_run
-
-        print(f"Run {run+1}: CPU avg={avg_cpu_run:.2f}%, RAM avg={avg_mem_run:.2f} MB, Time={end_time - start_time:.4f}s")
 
     s = io.StringIO()
     ps = pstats.Stats(pr, stream=s).sort_stats(sort_by)
