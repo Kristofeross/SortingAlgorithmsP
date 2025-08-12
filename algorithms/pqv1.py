@@ -1,10 +1,10 @@
 import multiprocessing as mp
 import time
-import sqlite3
 import math
+import threading
 
-from temp_support import quicksort, partition, test_get_data, test_cores, sequence_quicksot
-
+from temp_support import quicksort, partition, test_get_data, test_cores, sequence_quicksot, profile_function
+# W1
 def parallel_quicksort_worker(arr, depth, max_depth, output_queue):
     if len(arr) <= 1:
         output_queue.put(arr)
@@ -49,11 +49,13 @@ if __name__ == "__main__":
     data = test_get_data()
     cores = test_cores()
     max_depth = int(math.log2(cores))
-    sorted_seq = sequence_quicksot(data)
+    # sorted_seq = sequence_quicksot(data)
+    sorted_seq = profile_function(quicksort, data, label="Sekwencyjny quicksort")
 
     # Parallel quicksort with Process
     start = time.perf_counter()
-    sorted_par = parallel_quicksort(data, max_depth=max_depth)
+    sorted_par = profile_function(parallel_quicksort, data, max_depth, label="Równoległy quicksort")
+    # sorted_par = parallel_quicksort(data, max_depth=max_depth)
     end = time.perf_counter()
     print(f"\nPo sortowaniu równoległym (czas): {end - start:.6f} s")
 

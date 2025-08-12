@@ -1,13 +1,8 @@
 import multiprocessing as mp
-import time
-import sqlite3
 import math
-import cProfile
-import pstats
-import io
 
-from temp_support import quicksort, partition, test_get_data, test_cores, sequence_quicksot
-
+from temp_support import quicksort, partition, test_get_data, test_cores, sequence_quicksot, profile_function
+# W2
 def parallel_quicksort_worker(q, arr, max_depth, depth):
     result = parallel_quicksort(arr, max_depth, depth)
     q.put(result)
@@ -36,26 +31,6 @@ def parallel_quicksort(arr, max_depth, depth=0):
     right_process.join()
 
     return left_sorted + middle + right_sorted
-
-
-# 🔍 Profiling
-def profile_function(func, *args, label, sort_by="cumulative"):
-    pr = cProfile.Profile()
-    pr.enable()
-    start = time.perf_counter()
-    result = func(*args)
-    end = time.perf_counter()
-    pr.disable()
-
-    s = io.StringIO()
-    ps = pstats.Stats(pr, stream=s).sort_stats(sort_by)
-    ps.print_stats(20)  # top 20 the most weight functions
-    print(f"\n--- {label} ---")
-    print(f"Czas wykonania: {end - start:.6f} s")
-    print(s.getvalue())
-
-    return result
-
 
 if __name__ == "__main__":
     data = test_get_data()
