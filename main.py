@@ -1,17 +1,16 @@
 import multiprocessing as mp
 
-from algorithms.pqv2 import parallel_quicksort
-from algorithms.pmsv1 import parallel_merge_sort
-from algorithms.pbsv1 import parallel_bucket_sort
+from algorithms.quicksort.sequential import quicksort
+from algorithms.quicksort.parallel_v2 import parallel_quicksort
+from algorithms.mergesort.parallel import merge_sort
+from algorithms.mergesort.parallel import parallel_merge_sort
+from algorithms.bucketsort.sequential import bucket_sort
+from algorithms.bucketsort.parallel import parallel_bucket_sort
 
-from algorithms.temp_support import (
-    get_data_from_db,
-    quicksort,
-    profile_function
-)
 
-from algorithms.pmsv1 import merge_sort
-from algorithms.pbsv1 import bucket_sort
+from core.database import get_data_from_db
+from core.benchmark import profile_function
+
 
 # ==========================================
 # Stałe
