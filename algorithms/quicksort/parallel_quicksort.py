@@ -3,12 +3,9 @@ import multiprocessing as mp
 import time
 import sqlite3
 
-from algorithms.temp_support import (
-    quicksort,
-    partition,
-    sequence_quicksot,
-    # profile_function
-    )
+from .utils import partition
+from .sequential import quicksort
+
 
 def parallel_quicksort_worker(arr, depth, max_depth):
     if len(arr) <= 1:

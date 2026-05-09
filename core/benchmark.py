@@ -6,8 +6,7 @@ import psutil
 import os
 import threading
 
-
-from monitoring import measure_usage
+from .monitoring import measure_usage
 
 def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", repeat=8, sample_interval=0.1):
     total_time = 0.0

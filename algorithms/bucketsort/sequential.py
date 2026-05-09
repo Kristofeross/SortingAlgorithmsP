@@ -1,7 +1,5 @@
 import math
 
-# from .utils import distribute_to_buckets
-# from algorithms.mergesort.sequential import merge_sort
 from .utils import insertion_sort
 
 def bucket_sort(arr, num_buckets=None):
