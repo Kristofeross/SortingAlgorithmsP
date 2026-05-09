@@ -13,7 +13,7 @@ def create_table(conn, table_name):
             CREATE TABLE IF NOT EXISTS {table_name} (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 value {data_type} NOT NULL,
-                set_size INTEGER NOT NULL CHECK( set_size IN (1000, 10000, 100000) )
+                set_size INTEGER NOT NULL CHECK( set_size IN (1000, 10000, 100000, 1000000) )
             );
         """)
         conn.commit()
@@ -90,7 +90,7 @@ def insert_values(conn, table_name, count):
     except sqlite3.Error as e:
         print(f"Błąd podczas wstawiania danych do tabeli '{table_name}': {e}")
 
-def generate_data(table_name, db_path="dane.db"):
+def generate_data(table_name, db_path="../dane.db"):
     try:
         allowed_table_name = {"random_int", "random_float", "duplicates_int", "duplicates_float", "part_sorted_int", "part_sorted_float"}
         if table_name not in allowed_table_name:
@@ -99,11 +99,11 @@ def generate_data(table_name, db_path="dane.db"):
         conn = sqlite3.connect(db_path)
         create_table(conn, table_name)
 
-        data_size = [1000, 10_000, 100_000]
+        data_size = [1000, 10_000, 100_000, 1000_000]
         for count in data_size:
             insert_values(conn, table_name, count)
 
-        print("Wszystkie dane zostały wygenerwoane i zapisane")
+        print("\nWszystkie dane zostały wygenerwoane i zapisane")
 
     except sqlite3.Error as e:
         print(f"Błąd połączenia z bazą danych: {e}")
