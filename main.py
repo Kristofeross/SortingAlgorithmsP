@@ -6,13 +6,13 @@ from core.menu import print_separator, choose_algorithm, choose_table, choose_si
 
 
 def main():
-    # Wybór konfiguracji
+    # Choice of configurations
     algorithm = choose_algorithm()
     table_name = choose_table()
     set_size = choose_size()
     cores = choose_cores()
 
-    # Pobranie danych
+    # Download data
     print_separator()
     print("Wczytane dane")
     print_separator()
@@ -24,7 +24,7 @@ def main():
     data = get_data_from_db(table_name, set_size)
     print(f"Pobrano {len(data)} rekordów")
 
-    # Test sekwencyjny
+    # Sequential test
     print_separator()
     print("Test sekwencyjny")
     print_separator()
@@ -35,7 +35,7 @@ def main():
         label=f"{algorithm['name']} - Sequential"
     )
 
-    # Test równoległy
+    # Parallel test
     print_separator()
     print("Test równoległy")
     print_separator()
@@ -85,7 +85,7 @@ def main():
         return
 
 
-    # Weryfikacja poprawności
+    # Validation
     print_separator()
     print("Weryfikacja")
     print_separator()

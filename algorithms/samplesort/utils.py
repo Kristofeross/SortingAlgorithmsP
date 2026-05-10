@@ -1,5 +1,5 @@
 def split_data(arr, parts):
-    chunk_size = len(arr)
+    chunk_size = len(arr) // parts
     chunks = []
 
     for i in range(parts):
@@ -28,7 +28,7 @@ def choose_pivots(samples, parts):
     samples.sort()
     pivots = []
 
-    step = len(samples)
+    step = len(samples) // parts
 
     for i in range(1, parts):
         pivots.append(samples[i * step])
