@@ -71,6 +71,15 @@ def main():
             label=f"{algorithm['name']} - Parallel"
         )
 
+    elif algorithm["name"] == "Sample Sort":
+
+        parallel_result = profile_function(
+            algorithm["parallel"],
+            data,
+            cores,
+            label=f"{algorithm['name']} - Parallel"
+        )
+
     else:
         print("Nieobsługiwany algorytm")
         return

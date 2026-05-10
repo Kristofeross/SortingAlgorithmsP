@@ -1,13 +1,12 @@
 from algorithms.quicksort.sequential import quicksort
-from algorithms.quicksort.parallel_v2 import parallel_quicksort
+from algorithms.quicksort.parallel_v1 import parallel_quicksort
 from algorithms.mergesort.parallel import merge_sort
 from algorithms.mergesort.parallel import parallel_merge_sort
 from algorithms.bucketsort.sequential import bucket_sort
 from algorithms.bucketsort.parallel import parallel_bucket_sort
+from algorithms.samplesort.sequential import sample_sort
+from algorithms.samplesort.parallel import parallel_sample_sort
 
-# ==========================================
-# Stałe
-# ==========================================
 
 # Dostępne algorytmy
 ALGORITHMS = {
@@ -26,11 +25,11 @@ ALGORITHMS = {
         "sequential": bucket_sort,
         "parallel": parallel_bucket_sort
     },
-    # "4": {
-    #     "name": "Sample Sort",
-    #     "sequential": ,
-    #     "parallel":
-    # },
+    "4": {
+        "name": "Sample Sort",
+        "sequential": sample_sort,
+        "parallel": parallel_sample_sort
+    },
     # "5": {
     #     "name": "Odd-Even Transposition Sort",
     #     "sequential": ,
