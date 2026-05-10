@@ -2,7 +2,6 @@ import time
 import psutil
 
 
-
 def get_total_usage(proc):
     try:
         children = proc.children(recursive=True)
@@ -28,7 +27,7 @@ def measure_usage(main_proc, interval, cpu_samples, mem_samples, states, stop_fl
         cpu_samples.append(cpu_now)
         mem_samples.append(mem_now)
 
-        state = "idle" if cpu_now < 5 else "active"  # Próg 5% CPU
+        state = "idle" if cpu_now < 5 else "active"
         states.append(state)
 
         time.sleep(interval)

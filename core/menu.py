@@ -1,9 +1,6 @@
 import  multiprocessing as mp
 from .config import ALGORITHMS, DATA_SIZES, DATA_TABLES
 
-# ==========================================
-# Funkcje pomocnicze
-# ==========================================
 
 def print_separator():
     print("=" * 60)
