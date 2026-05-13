@@ -8,18 +8,15 @@ import threading
 
 from .monitoring import measure_usage
 
-def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", repeat=8, sample_interval=0.1):
+def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", repeat=8, sample_interval=0.05):
     total_time = 0.0
     total_cpu = 0.0
     total_mem = 0.0
 
     pr = cProfile.Profile()
 
-    for run in range(repeat):
+    for run in range(repeat + 1):
         main_proc = psutil.Process(os.getpid())
-        main_proc.cpu_percent(interval=None)
-        for child in main_proc.children(recursive=True):
-            child.cpu_percent(interval=None)
 
         cpu_samples = []
         mem_samples = []
@@ -49,8 +46,13 @@ def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", re
         active_time = states.count("active") * sample_interval
         idle_time = states.count("idle") * sample_interval
 
+
         print(f"Run {run + 1}: CPU avg={avg_cpu_run:.2f}%, RAM avg={avg_mem_run:.2f} MB, "
               f"Active time={active_time:.2f}s, Idle time={idle_time:.2f}s, Total time={end_time - start_time:.4f}s")
+
+        if run == 0:
+            print("Pierwsze uruchomienie pominięte\n")
+            continue
 
         # Save to file
         # filename = f"profile_{label.replace(' ', '_')}_run{run + 1}.txt"
