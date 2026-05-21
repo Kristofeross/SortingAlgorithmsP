@@ -1,16 +1,17 @@
 import multiprocessing as mp
 
 from .utils import split_data, select_samples, choose_pivots, distribute_to_buckets
+from algorithms.mergesort.sequential import merge_sort
 
 
 def local_sort_worker(chunk, sample_count, queue):
-    sorted_chunk = sorted(chunk)
+    sorted_chunk = merge_sort(chunk)
     samples = select_samples(sorted_chunk, sample_count)
     queue.put((sorted_chunk, samples))
 
 
 def bucket_sort_worker(bucket, queue):
-    queue.put(sorted(bucket))
+    queue.put(merge_sort(bucket))
 
 
 def parallel_sample_sort(arr, cores):

@@ -1,4 +1,5 @@
 from .utils import split_data, select_samples, choose_pivots, distribute_to_buckets
+from algorithms.mergesort.sequential import merge_sort
 
 
 def sample_sort(arr, parts=4):
@@ -7,7 +8,7 @@ def sample_sort(arr, parts=4):
 
     # Divide data, local sort and sampling
     chunks = split_data(arr, parts)
-    sorted_chunks = [sorted(chunk) for chunk in chunks]
+    sorted_chunks = [merge_sort(chunk) for chunk in chunks]
     all_samples = []
 
     for chunk in sorted_chunks:
@@ -29,6 +30,6 @@ def sample_sort(arr, parts=4):
     final_sorted = []
 
     for bucket in buckets:
-        final_sorted.extend(sorted(bucket))
+        final_sorted.extend(merge_sort(bucket))
 
     return final_sorted
