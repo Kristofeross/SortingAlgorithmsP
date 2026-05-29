@@ -91,3 +91,11 @@ def choose_cores():
             pass
 
         print("Niepoprawny wybór!")
+
+
+def choose_program_mode():
+    print("1. Benchmark ręczny")
+    print("2. Benchmark automatyczny pełny")
+    print("3. Benchmark automatyczny demo")
+
+    return input("Wybierz tryb: ")

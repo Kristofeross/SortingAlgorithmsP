@@ -9,7 +9,7 @@ import statistics
 
 from .monitoring import measure_usage
 
-def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", repeat=8, sample_interval=0.05, sequential_time=None, cores=1):
+def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", repeat=4, sample_interval=0.05, sequential_time=None, cores=1):
     times = []
     cpu_results = []
     mem_results = []
