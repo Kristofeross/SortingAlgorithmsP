@@ -29,11 +29,12 @@ def main():
     print("Test sekwencyjny")
     print_separator()
 
-    sequential_result = profile_function(
+    sequential_stats = profile_function(
         algorithm["sequential"],
         data,
         label=f"{algorithm['name']} - Sequential"
     )
+    sequential_result = sequential_stats["result"]
 
     # Parallel test
     print_separator()
@@ -44,41 +45,51 @@ def main():
         import math
         max_depth = int(math.log2(cores))
 
-        parallel_result = profile_function(
+        parallel_stats = profile_function(
             algorithm["parallel"],
             data,
             max_depth,
-            label=f"{algorithm['name']} - Parallel"
+            label=f"{algorithm['name']} - Parallel",
+            sequential_time=sequential_stats["avg_time"],
+            cores=cores
         )
+        parallel_result = parallel_stats["result"]
 
     elif algorithm["name"] == "Parallel MergeSort":
         import math
         max_depth = int(math.log2(cores))
 
-        parallel_result = profile_function(
+        parallel_stats = profile_function(
             algorithm["parallel"],
             data,
             max_depth,
-            label=f"{algorithm['name']} - Parallel"
+            label=f"{algorithm['name']} - Parallel",
+            sequential_time=sequential_stats["avg_time"],
+            cores=cores
         )
+        parallel_result = parallel_stats["result"]
 
     elif algorithm["name"] == "Parallel BucketSort":
-
-        parallel_result = profile_function(
+        parallel_stats = profile_function(
             algorithm["parallel"],
             data,
             cores,
-            label=f"{algorithm['name']} - Parallel"
+            label=f"{algorithm['name']} - Parallel",
+            sequential_time=sequential_stats["avg_time"],
+            cores=cores
         )
+        parallel_result = parallel_stats["result"]
 
     elif algorithm["name"] == "Sample Sort":
-
-        parallel_result = profile_function(
+        parallel_stats = profile_function(
             algorithm["parallel"],
             data,
             cores,
-            label=f"{algorithm['name']} - Parallel"
+            label=f"{algorithm['name']} - Parallel",
+            sequential_time=sequential_stats["avg_time"],
+            cores=cores
         )
+        parallel_result = parallel_stats["result"]
 
     else:
         print("Nieobsługiwany algorytm")
