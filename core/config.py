@@ -8,7 +8,7 @@ from algorithms.samplesort.sequential import sample_sort
 from algorithms.samplesort.parallel import parallel_sample_sort
 
 
-# Dostępne algorytmy
+# available algorithms
 ALGORITHMS = {
     "1": {
         "name": "Parallel QuickSort",
@@ -30,24 +30,25 @@ ALGORITHMS = {
         "sequential": sample_sort,
         "parallel": parallel_sample_sort
     },
-    # "5": {
-    #     "name": "Odd-Even Transposition Sort",
-    #     "sequential": ,
-    #     "parallel":
-    # }
 }
 
-# Dostępne tabele danych
+# available tables of data
 DATA_TABLES = {
     "1": ("random_int", "Losowe liczby całkowite"),
     "2": ("random_float", "Losowe liczby zmiennoprzecinkowe"),
     "3": ("duplicates_int", "Całkowite liczby z duplikatami"),
     "4": ("duplicates_float", "Zmienne liczby z duplikatami"),
-    "5": ("part_sorted_int", "Częściowo posortowane liczby całkowite"),
-    "6": ("part_sorted_float", "Częściowo posortowane liczby zmiennoprzecinkowe")
+    "5": ("part_sorted20_int", "20% posortowanych liczb całkowitych"),
+    "6": ("part_sorted20_float", "20% posortowanych liczb zmiennoprzecinkowych"),
+    "7": ("part_sorted40_int", "40% posortowanych liczb całkowitych"),
+    "8": ("part_sorted40_float", "40% posortowanych liczb zmiennoprzecinkowych"),
+    "9": ("part_sorted60_int", "60% posortowanych liczb całkowitych"),
+    "10": ("part_sorted60_float", "60% posortowanych liczb zmiennoprzecinkowych"),
+    "11": ("part_sorted80_int", "80% posortowanych liczb całkowitych"),
+    "12": ("part_sorted80_float", "80% posortowanych liczb zmiennoprzecinkowych")
 }
 
-# Rozmiary danych
+# sizes of data
 DATA_SIZES = {
     "1": 1000,
     "2": 10000,

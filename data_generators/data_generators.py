@@ -36,8 +36,8 @@ def generate_duplicate_values(table_name, count, scope):
 
     return [(random.choice(unique_values), count) for _ in range(count)]
 
-def generate_part_sorted_values(table_name, count, scope):
-    sorted_count = int(count * 0.4)
+def generate_part_sorted_values(table_name, count, scope, sorted_ratio):
+    sorted_count = int(count * sorted_ratio)
     random_count = count - sorted_count
     parts = 5
 
@@ -48,7 +48,7 @@ def generate_part_sorted_values(table_name, count, scope):
         sorted_values = sorted(random.uniform(0, scope) for _ in range(sorted_count))
         random_values = [random.uniform(0, scope) for _ in range(random_count)]
 
-    # Divine sorted values at parts
+    # Divine sorted values into parts
     chunk_size = sorted_count // parts
     sorted_chunks = [sorted_values[i*chunk_size:(i+1)*chunk_size] for i in range(parts-1)]
     sorted_chunks.append(sorted_values[(parts-1)*chunk_size:])
@@ -77,8 +77,16 @@ def insert_values(conn, table_name, count):
             values = generate_random_values(table_name, count, scope)
         elif table_name.startswith("duplicates_"):
             values = generate_duplicate_values(table_name, count, scope)
-        elif table_name.startswith("part_sorted_"):
-            values = generate_part_sorted_values(table_name, count, scope)
+        # elif table_name.startswith("part_sorted_"):
+        #     values = generate_part_sorted_values(table_name, count, scope)
+        elif table_name.startswith("part_sorted20_"):
+            values = generate_part_sorted_values(table_name, count, scope, 0.2)
+        elif table_name.startswith("part_sorted40_"):
+            values = generate_part_sorted_values(table_name, count, scope, 0.4)
+        elif table_name.startswith("part_sorted60_"):
+            values = generate_part_sorted_values(table_name, count, scope, 0.6)
+        elif table_name.startswith("part_sorted80_"):
+            values = generate_part_sorted_values(table_name, count, scope, 0.8)
         else:
             raise ValueError(f"Nieobsługiwana tabela: {table_name}")
 
@@ -92,7 +100,14 @@ def insert_values(conn, table_name, count):
 
 def generate_data(table_name, db_path="../dane.db"):
     try:
-        allowed_table_name = {"random_int", "random_float", "duplicates_int", "duplicates_float", "part_sorted_int", "part_sorted_float"}
+        allowed_table_name = {
+            "random_int", "random_float",
+            "duplicates_int", "duplicates_float",
+            "part_sorted20_int", "part_sorted20_float",
+            "part_sorted40_int", "part_sorted40_float",
+            "part_sorted60_int", "part_sorted60_float",
+            "part_sorted80_int", "part_sorted80_float"
+        }
         if table_name not in allowed_table_name:
             raise ValueError(f"Niepoprawna nazwa tabeli: '{table_name}'. Dozwolone nazwy: {allowed_table_name}")
 
@@ -116,5 +131,11 @@ if __name__ == "__main__":
     generate_data("random_float")
     generate_data("duplicates_int")
     generate_data("duplicates_float")
-    generate_data("part_sorted_int")
-    generate_data("part_sorted_float")
+    generate_data("part_sorted20_int")
+    generate_data("part_sorted20_float")
+    generate_data("part_sorted40_int")
+    generate_data("part_sorted40_float")
+    generate_data("part_sorted60_int")
+    generate_data("part_sorted60_float")
+    generate_data("part_sorted80_int")
+    generate_data("part_sorted80_float")
