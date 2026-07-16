@@ -46,7 +46,7 @@ def run_manual_benchmarks():
     print("Test równoległy")
     print_separator()
 
-    if algorithm["name"] == "Parallel QuickSort":
+    if algorithm["name"] == "Quick Sort":
         import math
         max_depth = int(math.log2(cores))
 
@@ -59,7 +59,7 @@ def run_manual_benchmarks():
             cores=cores
         )
 
-    elif algorithm["name"] == "Parallel MergeSort":
+    elif algorithm["name"] == "Merge Sort":
         import math
         max_depth = int(math.log2(cores))
 
@@ -72,7 +72,7 @@ def run_manual_benchmarks():
             cores=cores
         )
 
-    elif algorithm["name"] == "Parallel BucketSort":
+    elif algorithm["name"] == "Bucket Sort":
         parallel_stats = profile_function(
             algorithm["parallel"],
             data,

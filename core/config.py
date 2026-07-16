@@ -11,17 +11,17 @@ from algorithms.samplesort.parallel import parallel_sample_sort
 # available algorithms
 ALGORITHMS = {
     "1": {
-        "name": "Parallel QuickSort",
+        "name": "Quick Sort",
         "sequential": quicksort,
         "parallel": parallel_quicksort
     },
     "2": {
-        "name": "Parallel MergeSort",
+        "name": "Merge Sort",
         "sequential": merge_sort,
         "parallel": parallel_merge_sort
     },
     "3": {
-        "name": "Parallel BucketSort",
+        "name": "Bucket Sort",
         "sequential": bucket_sort,
         "parallel": parallel_bucket_sort
     },

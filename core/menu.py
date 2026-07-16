@@ -59,7 +59,7 @@ def get_available_cores():
     max_cores = mp.cpu_count()
 
     available = []
-    current = 1
+    current = 2
 
     while current <= max_cores:
         available.append(current)
