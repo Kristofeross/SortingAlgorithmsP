@@ -1,10 +1,13 @@
-from .utils import split_data, select_samples, choose_pivots, distribute_to_buckets
+from .utils import split_data, select_samples, choose_pivots, distribute_to_buckets, get_optimal_parts
 from algorithms.mergesort.sequential import merge_sort
 
 
-def sample_sort(arr, parts=4):
+def sample_sort(arr, parts=None):
     if len(arr) <= 1:
         return arr
+
+    if parts is None:
+        parts = get_optimal_parts(len(arr))
 
     # Divide data, local sort and sampling
     chunks = split_data(arr, parts)

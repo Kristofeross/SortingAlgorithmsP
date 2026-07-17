@@ -52,3 +52,15 @@ def distribute_to_buckets(data, pivots):
             buckets[-1].append(value)
 
     return buckets
+
+
+def get_optimal_parts(n: int) -> int:
+    if n < 1_000:
+        return 4
+    elif n < 10_000:
+        return 8
+    elif n < 100_000:
+        return 16
+    else:
+        parts = max(16, int(n ** 0.25) * 2)
+        return min(64, parts)
