@@ -1,3 +1,8 @@
+import math
+
+from algorithms.mergesort.sequential import merge_sort
+
+
 def insertion_sort(arr):
     for i in range(1, len(arr)):
         key = arr[i]
@@ -25,7 +30,7 @@ def distribute_to_buckets(arr, num_buckets):
 
         return buckets
 
-    bucket_range = (max_val - min_val + 1) / num_buckets
+    bucket_range = (max_val - min_val) / num_buckets
     buckets = [[] for _ in range(num_buckets)]
 
     for num in arr:
@@ -33,3 +38,20 @@ def distribute_to_buckets(arr, num_buckets):
         buckets[index].append(num)
 
     return buckets
+
+
+def calculate_bucket_count(data_size, process_count):
+    return max(int(math.sqrt(data_size)), process_count * 8)
+
+
+def split_bucket_groups(buckets, process_count):
+    groups = [[] for _ in range(process_count)]
+
+    for index, bucket in enumerate(buckets):
+        groups[index % process_count].append((index, bucket))
+
+    return groups
+
+
+def sort_bucket(bucket):
+    return merge_sort(bucket)

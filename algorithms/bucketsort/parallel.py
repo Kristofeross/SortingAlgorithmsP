@@ -1,36 +1,52 @@
 import multiprocessing as mp
 
-from .utils import insertion_sort, distribute_to_buckets
+from .utils import distribute_to_buckets, calculate_bucket_count, split_bucket_groups, sort_bucket
 
 
-def parallel_bucket_sort_worker(bucket, output_queue):
-    sorted_bucket = insertion_sort(bucket)
-    output_queue.put(sorted_bucket)
+def parallel_bucket_sort_worker(bucket_group, output_queue):
+    result = []
 
-def parallel_bucket_sort(arr, num_buckets):
-    if len(arr) == 0:
+    for index, bucket in bucket_group:
+        sorted_bucket = sort_bucket(bucket)
+        result.append((index, sorted_bucket))
+
+    output_queue.put(result)
+
+
+def parallel_bucket_sort(arr, process_count):
+    if len(arr) <= 1:
         return arr
 
-    buckets = distribute_to_buckets(arr, num_buckets)
+    bucket_count = calculate_bucket_count(len(arr), process_count)
+    buckets = distribute_to_buckets(arr, bucket_count)
+    bucket_groups = split_bucket_groups(buckets, process_count)
 
     processes = []
     queues = []
 
-    # Creating process
-    for bucket in buckets:
-        q = mp.Queue()
-        p = mp.Process(target=parallel_bucket_sort_worker, args=(bucket, q))
-        processes.append(p)
-        queues.append(q)
-        p.start()
+    for group in bucket_groups:
+        queue = mp.Queue()
 
-    sorted_buckets = []
+        process = mp.Process(
+            target=parallel_bucket_sort_worker,
+            args=(group, queue)
+        )
 
-    for p, q in zip(processes, queues):
-        sorted_buckets.append(q.get())
-        p.join()
+        process.start()
 
-    # Merging
+        processes.append(process)
+        queues.append(queue)
+
+    sorted_buckets = [None] * bucket_count
+
+    for process, queue in zip(processes, queues):
+        group_result = queue.get()
+
+        for bucket_index, bucket in group_result:
+            sorted_buckets[bucket_index] = bucket
+
+        process.join()
+
     sorted_arr = []
 
     for bucket in sorted_buckets:
