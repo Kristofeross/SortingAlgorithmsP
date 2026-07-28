@@ -1,4 +1,4 @@
-IMPLEMENTATION_VERSION = "classic"
+IMPLEMENTATION_VERSION = "shared_memory"
 
 if IMPLEMENTATION_VERSION == "classic":
     from algorithms.quicksort.sequential import quicksort
@@ -10,7 +10,14 @@ if IMPLEMENTATION_VERSION == "classic":
     from algorithms.samplesort.sequential import sample_sort
     from algorithms.samplesort.parallel import parallel_sample_sort
 elif IMPLEMENTATION_VERSION == "shared_memory":
-    from algorithms.quicksort.sequential import quicksort
+    from algorithms.shared_memory.quicksort.sequential import quicksort
+    from algorithms.shared_memory.quicksort.parallel import parallel_quicksort
+    from algorithms.mergesort.sequential import merge_sort
+    from algorithms.mergesort.parallel import parallel_merge_sort
+    from algorithms.bucketsort.sequential import bucket_sort
+    from algorithms.bucketsort.parallel import parallel_bucket_sort
+    from algorithms.samplesort.sequential import sample_sort
+    from algorithms.samplesort.parallel import parallel_sample_sort
 elif IMPLEMENTATION_VERSION == "cpp":
     from algorithms.quicksort.sequential import quicksort
 else:
