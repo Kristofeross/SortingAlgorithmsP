@@ -1,25 +1,25 @@
 IMPLEMENTATION_VERSION = "shared_memory"
 
-if IMPLEMENTATION_VERSION == "classic":
-    from algorithms.quicksort.sequential import quicksort
-    from algorithms.quicksort.parallel import parallel_quicksort
-    from algorithms.mergesort.sequential import merge_sort
-    from algorithms.mergesort.parallel import parallel_merge_sort
-    from algorithms.bucketsort.sequential import bucket_sort
-    from algorithms.bucketsort.parallel import parallel_bucket_sort
-    from algorithms.samplesort.sequential import sample_sort
-    from algorithms.samplesort.parallel import parallel_sample_sort
+if IMPLEMENTATION_VERSION == "queue":
+    from algorithms.queue.quicksort.sequential import quicksort
+    from algorithms.queue.quicksort.parallel import parallel_quicksort
+    from algorithms.queue.mergesort.sequential import merge_sort
+    from algorithms.queue.mergesort.parallel import parallel_merge_sort
+    from algorithms.queue.bucketsort.sequential import bucket_sort
+    from algorithms.queue.bucketsort.parallel import parallel_bucket_sort
+    from algorithms.queue.samplesort.sequential import sample_sort
+    from algorithms.queue.samplesort.parallel import parallel_sample_sort
 elif IMPLEMENTATION_VERSION == "shared_memory":
     from algorithms.shared_memory.quicksort.sequential import quicksort
     from algorithms.shared_memory.quicksort.parallel import parallel_quicksort
-    from algorithms.mergesort.sequential import merge_sort
-    from algorithms.mergesort.parallel import parallel_merge_sort
-    from algorithms.bucketsort.sequential import bucket_sort
-    from algorithms.bucketsort.parallel import parallel_bucket_sort
-    from algorithms.samplesort.sequential import sample_sort
-    from algorithms.samplesort.parallel import parallel_sample_sort
+    from algorithms.shared_memory.mergesort.sequential import merge_sort
+    from algorithms.shared_memory.mergesort.parallel import parallel_merge_sort
+    from algorithms.queue.bucketsort.sequential import bucket_sort
+    from algorithms.queue.bucketsort.parallel import parallel_bucket_sort
+    from algorithms.queue.samplesort.sequential import sample_sort
+    from algorithms.queue.samplesort.parallel import parallel_sample_sort
 elif IMPLEMENTATION_VERSION == "cpp":
-    from algorithms.quicksort.sequential import quicksort
+    from algorithms.queue.quicksort.sequential import quicksort
 else:
     raise ValueError(f"Nieznana wersja implementacji: {IMPLEMENTATION_VERSION}")
 
