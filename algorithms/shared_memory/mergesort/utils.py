@@ -4,26 +4,31 @@ from multiprocessing import shared_memory
 
 
 def merge(arr, left, mid, right):
-    temp = []
+    temp = [None] * (right - left + 1)
 
     i = left
     j = mid + 1
+    k = 0
 
     while i <= mid and j <= right:
         if arr[i] <= arr[j]:
-            temp.append(arr[i])
+            temp[k] = arr[i]
             i += 1
         else:
-            temp.append(arr[j])
+            temp[k] = arr[j]
             j += 1
 
+        k += 1
+
     while i <= mid:
-        temp.append(arr[i])
+        temp[k] = arr[i]
         i += 1
+        k += 1
 
     while j <= right:
-        temp.append(arr[j])
+        temp[k] = arr[j]
         j += 1
+        k += 1
 
     arr[left:right + 1] = temp
 

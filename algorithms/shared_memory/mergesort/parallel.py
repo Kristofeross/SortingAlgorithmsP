@@ -5,7 +5,10 @@ from algorithms.shared_memory.mergesort.sequential import merge_sort
 
 
 def sort_in_place_on_shared(arr, left, right):
-    merge_sort(arr, left, right)
+    size = right - left + 1
+    local = arr[left:right + 1]
+    merge_sort(local, 0, size - 1)
+    arr[left:right + 1] = local
 
 
 def parallel_mergesort_recursive(arr, shm_name, length, dtype, left, right, depth, max_depth, min_size,):
@@ -19,47 +22,38 @@ def parallel_mergesort_recursive(arr, shm_name, length, dtype, left, right, dept
         return
 
     mid = (left + right) // 2
-
     processes = []
 
-    left_process = mp.Process(
-        target=parallel_mergesort_worker,
-        args=(
-            shm_name,
-            length,
-            dtype,
-            left,
-            mid,
-            depth + 1,
-            max_depth,
-            min_size,
-        ),
-    )
 
-    left_process.start()
-    processes.append(left_process)
+    for part_left, part_right in [(left, mid), (mid + 1, right)]:
+        part_size = part_right - part_left + 1
 
-    right_process = mp.Process(
-        target=parallel_mergesort_worker,
-        args=(
-            shm_name,
-            length,
-            dtype,
-            mid + 1,
-            right,
-            depth + 1,
-            max_depth,
-            min_size,
-        ),
-    )
+        if part_size > min_size:
+            p = mp.Process(
+                target=parallel_mergesort_worker,
+                args=(
+                    shm_name,
+                    length,
+                    dtype,
+                    part_left,
+                    part_right,
+                    depth + 1,
+                    max_depth,
+                    min_size
+                )
+            )
+            p.start()
+            processes.append(p)
+        else:
+            sort_in_place_on_shared(arr, part_left, part_right)
 
-    right_process.start()
-    processes.append(right_process)
 
     for process in processes:
         process.join()
 
-    merge(arr, left, mid, right)
+    local = arr[left:right + 1]
+    merge(local, 0, mid - left, size - 1)
+    arr[left:right + 1] = local
 
 
 def parallel_mergesort_worker(shm_name, length, dtype, left, right, depth, max_depth, min_size):
