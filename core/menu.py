@@ -1,4 +1,6 @@
 import  multiprocessing as mp
+import psutil
+
 from .config import ALGORITHMS, DATA_SIZES, DATA_TABLES
 
 
@@ -56,16 +58,17 @@ def choose_size():
         print("Niepoprawny wybór")
 
 def get_available_cores():
-    max_cores = mp.cpu_count()
+    physical = psutil.cpu_count(logical=False)
+    logical = psutil.cpu_count(logical=True)
 
     available = []
     current = 2
 
-    while current <= max_cores:
+    while current <= logical:
         available.append(current)
         current *= 2
 
-    return available
+    return available, physical, logical
 
 
 def choose_cores():
@@ -73,17 +76,27 @@ def choose_cores():
     print("Wybór liczby rdzeni")
     print_separator()
 
-    available_cores = get_available_cores()
+    available_cores, physical, logical = get_available_cores()
+
+    print(f"Rdzenie fizyczne : {physical}")
+    print(f"Rdzenie logiczne : {logical}")
+    print()
 
     for i, core in enumerate(available_cores, start=1):
-        print(f"{i}. {core}")
+        description = ""
+
+        if core <= physical:
+            description = "(≤ fizyczne)"
+        elif core <= logical:
+            description = "(wykorzystuje HT/SMT)"
+
+        print(f"{i}. {core} {description}")
 
     while True:
         choice = input("\nWybierz liczbę rdzeni: ")
 
         try:
             choice = int(choice)
-
             if 1 <= choice <= len(available_cores):
                 return available_cores[choice - 1]
 
