@@ -8,23 +8,23 @@ from core.results_database import create_results_table, save_benchmark_result
 
 TEST_ALGORITHMS = {
     # "1": ALGORITHMS["1"], # Quick Sort
-    # "2": ALGORITHMS["2"], # Merge Sort
-    "3": ALGORITHMS["3"], # Bucket Sort
+    "2": ALGORITHMS["2"], # Merge Sort
+    # "3": ALGORITHMS["3"], # Bucket Sort
     # "4": ALGORITHMS["4"]  # Sample Sort
 }
 TEST_TABLES = {
     "1": DATA_TABLES["1"], # Losowe liczby całkowite
-    "2": DATA_TABLES["2"], # Losowe liczby zmiennoprzecinkowe
-    "3": DATA_TABLES["3"], # Całkowite liczby z duplikatami
-    "4": DATA_TABLES["4"], # Zmienne liczby z duplikatami
-    "5": DATA_TABLES["5"], # 20% posortowanych liczb całkowitych
-    "6": DATA_TABLES["6"], # 20% posortowanych liczb zmiennoprzecinkowych
-    "7": DATA_TABLES["7"], # 40% posortowanych liczb całkowitych
-    "8": DATA_TABLES["8"], # 40% posortowanych liczb zmiennoprzecinkowych
-    "9": DATA_TABLES["9"], # 60% posortowanych liczb całkowitych
-    "10": DATA_TABLES["10"], # 60% posortowanych liczb zmiennoprzecinkowych
-    "11": DATA_TABLES["11"], # 80% posortowanych liczb całkowitych
-    "12": DATA_TABLES["12"]  # 80% posortowanych liczb zmiennoprzecinkowych
+    # "2": DATA_TABLES["2"], # Losowe liczby zmiennoprzecinkowe
+    # "3": DATA_TABLES["3"], # Całkowite liczby z duplikatami
+    # "4": DATA_TABLES["4"], # Zmienne liczby z duplikatami
+    # "5": DATA_TABLES["5"], # 20% posortowanych liczb całkowitych
+    # "6": DATA_TABLES["6"], # 20% posortowanych liczb zmiennoprzecinkowych
+    # "7": DATA_TABLES["7"], # 40% posortowanych liczb całkowitych
+    # "8": DATA_TABLES["8"], # 40% posortowanych liczb zmiennoprzecinkowych
+    # "9": DATA_TABLES["9"], # 60% posortowanych liczb całkowitych
+    # "10": DATA_TABLES["10"], # 60% posortowanych liczb zmiennoprzecinkowych
+    # "11": DATA_TABLES["11"], # 80% posortowanych liczb całkowitych
+    # "12": DATA_TABLES["12"]  # 80% posortowanych liczb zmiennoprzecinkowych
 }
 TEST_SIZES = {
     "1": DATA_SIZES["1"], # 1000
