@@ -21,13 +21,17 @@ def partition(arr, low, high):
     return i
 
 
+def get_ctype(dtype):
+    if dtype is int:
+        return ctypes.c_longlong
+    elif dtype is float:
+        return ctypes.c_double
+
+    raise ValueError("dtype musi być int lub float")
+
+
 def create_shared_array(data, dtype):
-    if dtype == int:
-        c_type = ctypes.c_longlong
-    elif dtype == float:
-        c_type = ctypes.c_double
-    else:
-        raise ValueError("dtype musi być int lub float")
+    c_type = get_ctype(dtype)
 
     shm = shared_memory.SharedMemory(
         create=True,
@@ -36,19 +40,13 @@ def create_shared_array(data, dtype):
 
     shared_array = (c_type * len(data)).from_buffer(shm.buf)
 
-    for i, value in enumerate(data):
-        shared_array[i] = value
+    shared_array[:] = data
 
     return shm, shared_array
 
 
 def attach_shared_array(name, length, dtype):
-    if dtype is int:
-        c_type = ctypes.c_longlong
-    elif dtype is float:
-        c_type = ctypes.c_double
-    else:
-        raise ValueError("dtype musi być int lub float")
+    c_type = get_ctype(dtype)
 
     shm = shared_memory.SharedMemory(name=name)
     shared_array = (c_type * length).from_buffer(shm.buf)
@@ -60,6 +58,10 @@ def calculate_min_size(data_size, max_depth):
     cores = 1 << max_depth
 
     return max(5000,  data_size // (cores * 8))
+    # return max(4000, data_size // (cores * 6))
+    # return max(3000, data_size // (cores * 4))
+    # return max(20000, data_size // (cores * 4))
+    # return max(50000, data_size // (cores * 2))
 
 
 def close_shared_memory(shm):

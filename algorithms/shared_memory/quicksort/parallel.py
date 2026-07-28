@@ -4,21 +4,27 @@ from algorithms.shared_memory.quicksort.utils import partition, create_shared_ar
 from algorithms.shared_memory.quicksort.sequential import quicksort
 
 
+def sort_in_place_on_shared(arr, low, high):
+    size = high - low + 1
+    local = arr[low:high + 1]
+    quicksort(local, 0, size - 1)
+    arr[low:high + 1] = local
+
+
 def parallel_quicksort_recursive(arr, shm_name, length, dtype, low, high, depth, max_depth, min_size):
     size = high - low + 1
 
     if size <= 1:
         return
 
-    if size <= min_size:
-        quicksort(arr, low, high)
+    if size <= min_size or depth >= max_depth:
+        sort_in_place_on_shared(arr, low, high)
         return
 
-    if depth >= max_depth:
-        quicksort(arr, low, high)
-        return
-
-    index = partition(arr, low, high)
+    local = arr[low:high + 1]
+    local_index = partition(local, 0, size - 1)
+    arr[low:high + 1] = local
+    index = low + local_index
 
     left = (low, index - 1)
     right = (index, high)
@@ -29,7 +35,13 @@ def parallel_quicksort_recursive(arr, shm_name, length, dtype, low, high, depth,
     for part in [left, right]:
         p_low, p_high = part
 
-        if p_low < p_high:
+        if p_low >= p_high:
+            continue
+
+
+        part_size = p_high - p_low + 1
+
+        if part_size > min_size:
             p = mp.Process(
                 target=parallel_quicksort_worker,
                 args=(
@@ -44,9 +56,10 @@ def parallel_quicksort_recursive(arr, shm_name, length, dtype, low, high, depth,
                 )
             )
 
-
             p.start()
             processes.append(p)
+        else:
+            sort_in_place_on_shared(arr, p_low, p_high)
 
     for p in processes:
         p.join()

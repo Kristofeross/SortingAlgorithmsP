@@ -40,6 +40,8 @@ def benchmark_worker(func, args, result_queue, sample_interval, profile_enabled,
         if profile_enabled:
             profiler.enable()
 
+        original = list(args[0])
+
         start_time = time.perf_counter()
         monitor_thread.start()
 
@@ -53,12 +55,12 @@ def benchmark_worker(func, args, result_queue, sample_interval, profile_enabled,
         if profile_enabled:
             profiler.disable()
 
-        expected = sorted(args[0])
+        expected = sorted(original)
 
-        correctness = (
-            "CORRECT"
-            if result == expected else "INCORRECT"
-        )
+        if result is None:
+            correctness = "CORRECT" if args[0] == expected else "INCORRECT"
+        else:
+            correctness = "CORRECT" if result == expected else "INCORRECT"
 
         avg_cpu = (
             statistics.mean(cpu_samples)
