@@ -14,10 +14,10 @@ elif IMPLEMENTATION_VERSION == "shared_memory":
     from algorithms.shared_memory.quicksort.parallel import parallel_quicksort
     from algorithms.shared_memory.mergesort.sequential import merge_sort
     from algorithms.shared_memory.mergesort.parallel import parallel_merge_sort
-    from algorithms.queue.bucketsort.sequential import bucket_sort
-    from algorithms.queue.bucketsort.parallel import parallel_bucket_sort
-    from algorithms.queue.samplesort.sequential import sample_sort
-    from algorithms.queue.samplesort.parallel import parallel_sample_sort
+    from algorithms.shared_memory.bucketsort.sequential import bucket_sort
+    from algorithms.shared_memory.bucketsort.parallel import parallel_bucket_sort
+    from algorithms.shared_memory.samplesort.sequential import sample_sort
+    from algorithms.shared_memory.samplesort.parallel import parallel_sample_sort
 elif IMPLEMENTATION_VERSION == "cpp":
     from algorithms.queue.quicksort.sequential import quicksort
 else:
