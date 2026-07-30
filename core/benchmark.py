@@ -62,6 +62,11 @@ def benchmark_worker(func, args, result_queue, sample_interval, profile_enabled,
         else:
             correctness = "CORRECT" if result == expected else "INCORRECT"
 
+        error_message = None
+
+        if correctness == "INCORRECT":
+            error_message = "Algorytm zwrócił niepoprawnie posortowane dane."
+
         avg_cpu = (
             statistics.mean(cpu_samples)
             if cpu_samples else 0
@@ -110,7 +115,8 @@ def benchmark_worker(func, args, result_queue, sample_interval, profile_enabled,
             "active_time": active_time,
             "idle_time": idle_time,
             "correctness": correctness,
-            "profile": profile_output
+            "profile": profile_output,
+            "error_message": error_message
         })
 
     except Exception as exception:
@@ -201,6 +207,7 @@ def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", re
 
         if run_data["correctness"] != "CORRECT":
             correctness = "INCORRECT"
+            error_message = run_data["error_message"]
 
         execution_time = run_data["execution_time"]
         avg_cpu_run = run_data["avg_cpu"]
@@ -277,8 +284,8 @@ def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", re
     print(f"Średnie użycie RAM: {avg_mem:.2f} MB")
     print(f"Maksymalne użycie RAM: {max_mem:.2f} MB")
 
-    if correctness != "CORRECT":
-        print("Algorytm zwrócił niepoprawnie posortowane dane!")
+    if error_message is not None:
+        print(f"Błąd: {error_message}")
     if speedup is not None:
         print(f"Speedup: {speedup:.4f}")
     if efficiency is not None:
@@ -297,5 +304,5 @@ def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", re
         "efficiency": efficiency,
         "status": "OK",
         "correctness": correctness,
-        "error_message": None,
+        "error_message": error_message
     }

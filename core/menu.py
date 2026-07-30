@@ -1,4 +1,3 @@
-import  multiprocessing as mp
 import psutil
 
 from .config import ALGORITHMS, DATA_SIZES, DATA_TABLES

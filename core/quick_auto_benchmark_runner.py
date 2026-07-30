@@ -8,9 +8,9 @@ from core.results_database import create_results_table, save_benchmark_result
 
 TEST_ALGORITHMS = {
     # "1": ALGORITHMS["1"], # Quick Sort
-    "2": ALGORITHMS["2"], # Merge Sort
+    # "2": ALGORITHMS["2"], # Merge Sort
     # "3": ALGORITHMS["3"], # Bucket Sort
-    # "4": ALGORITHMS["4"]  # Sample Sort
+    "4": ALGORITHMS["4"]  # Sample Sort
 }
 TEST_TABLES = {
     "1": DATA_TABLES["1"], # Losowe liczby całkowite
@@ -94,7 +94,7 @@ def run_quick_auto_benchmarks():
                     continue
 
                 if sequential_stats["correctness"] != "CORRECT":
-                    print("Sekwencyjne sortowanie niepoprawne.")
+                    print(f"Błąd: {sequential_stats['error_message']}")
                     continue
 
                 # Parallel benchmark
@@ -148,7 +148,7 @@ def run_quick_auto_benchmarks():
                         continue
 
                     if parallel_stats["correctness"] != "CORRECT":
-                        print("Niepoprawne sortowanie")
+                        print(f"Błąd: {parallel_stats['error_message']}")
                         continue
 
 
