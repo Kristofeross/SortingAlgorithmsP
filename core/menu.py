@@ -56,14 +56,16 @@ def choose_size():
 
         print("Niepoprawny wybór")
 
-def get_available_cores():
+def get_available_cores(use_logical=False):
     physical = psutil.cpu_count(logical=False)
     logical = psutil.cpu_count(logical=True)
+
+    max_cores = logical if use_logical else physical
 
     available = []
     current = 2
 
-    while current <= logical:
+    while current <= max_cores:
         available.append(current)
         current *= 2
 

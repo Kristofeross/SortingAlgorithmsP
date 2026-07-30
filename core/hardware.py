@@ -22,3 +22,19 @@ def get_system_info():
         "architecture": platform.machine(),
         "python_version": platform.python_version()
     }
+
+
+def get_available_cores(use_logical=False):
+    physical = psutil.cpu_count(logical=False)
+    logical = psutil.cpu_count(logical=True)
+
+    max_cores = logical if use_logical else physical
+
+    available_cores = []
+    current = 2
+
+    while current <= max_cores:
+        available_cores.append(current)
+        current *= 2
+
+    return available_cores, physical, logical
