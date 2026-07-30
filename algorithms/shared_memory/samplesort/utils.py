@@ -1,4 +1,5 @@
 import ctypes
+import os
 import math
 import numpy as np
 
@@ -163,15 +164,14 @@ def split_bucket_ranges(bucket_ranges, process_count):
     return groups
 
 
-def calculate_parts(data_size):
-    if data_size < 1_000:
-        return 4
-    elif data_size < 10_000:
-        return 8
-    elif data_size < 100_000:
-        return 16
+def calculate_parts(data_size, process_count=None):
+    if data_size <= 1:
+        return 1
 
-    return min( 64, max(16, int(data_size ** 0.25) * 2) )
+    if process_count is None:
+        process_count = os.cpu_count() or 8
+
+    return min(process_count, data_size)
 
 
 def sort_bucket(bucket):
