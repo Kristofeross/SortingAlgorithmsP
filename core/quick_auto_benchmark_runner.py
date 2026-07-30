@@ -4,7 +4,8 @@ from core.database import get_data_from_db
 from core.benchmark import profile_function
 from core.menu import print_separator
 from core.config import  ALGORITHMS, DATA_TABLES, DATA_SIZES
-from core.results_database import create_results_table, save_benchmark_result
+from core.hardware import get_system_info
+from core.results_database import create_system_info_table, save_system_info, create_results_table, save_benchmark_result
 
 TEST_ALGORITHMS = {
     # "1": ALGORITHMS["1"], # Quick Sort
@@ -37,6 +38,9 @@ TEST_CORES = [2, 4, 8]
 
 def run_quick_auto_benchmarks():
     create_results_table()
+    create_system_info_table()
+    save_system_info(get_system_info())
+
     available_cores = TEST_CORES
 
     total_tests = (

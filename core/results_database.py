@@ -5,6 +5,117 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "dane.db")
 
 
+def create_system_info_table():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS system_info
+        (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cpu_name TEXT NOT NULL,
+            physical_cores INTEGER NOT NULL,
+            logical_cores INTEGER NOT NULL,
+            cpu_frequency REAL,
+            ram_gb REAL NOT NULL,
+            operating_system TEXT NOT NULL,
+            architecture TEXT NOT NULL,
+            python_version TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def save_system_info(info):
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        DELETE FROM system_info
+        """
+    )
+
+    cursor.execute(
+        """
+        INSERT INTO system_info
+        (
+            cpu_name,
+            physical_cores,
+            logical_cores,
+            cpu_frequency,
+            ram_gb,
+            operating_system,
+            architecture,
+            python_version
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            info["cpu_name"],
+            info["physical_cores"],
+            info["logical_cores"],
+            info["cpu_frequency"],
+            info["ram_gb"],
+            info["operating_system"],
+            info["architecture"],
+            info["python_version"]
+        )
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def show_system_info(db_path=DB_PATH):
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT
+            cpu_name,
+            physical_cores,
+            logical_cores,
+            cpu_frequency,
+            ram_gb,
+            operating_system,
+            architecture,
+            python_version,
+            created_at
+        FROM system_info
+        LIMIT 1
+        """
+    )
+
+    row = cursor.fetchone()
+    conn.close()
+
+    print("\n===== Informacje o sprzęcie =====")
+
+    if row is None:
+        print("Brak zapisanych informacji o sprzęcie.")
+        return
+
+    print(
+        f"""
+        Procesor:             {row[0]}
+        Rdzenie fizyczne:     {row[1]}
+        Rdzenie logiczne:     {row[2]}
+        Taktowanie CPU:       {row[3]:.0f} MHz
+        Pamięć RAM:           {row[4]:.2f} GB
+        System operacyjny:    {row[5]}
+        Architektura:         {row[6]}
+        Python:               {row[7]}
+        """
+    )
+
+
 def create_results_table(db_path=DB_PATH):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
@@ -252,7 +363,7 @@ def show_timeout_tests(db_path=DB_PATH):
         )
 
 
-def show_incorrect_results(db_path=DB_PATH):
+def show_problem_results(db_path=DB_PATH):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
@@ -264,32 +375,38 @@ def show_incorrect_results(db_path=DB_PATH):
             dataset,
             data_size,
             cores,
-            status
+            status,
+            correctness,
+            error_message
         FROM benchmark_results
-        WHERE correctness = '0'
+        WHERE status != 'OK'
+           OR correctness != 'CORRECT'
+        ORDER BY algorithm, mode, data_size, cores
         """
     )
 
     rows = cursor.fetchall()
     conn.close()
 
-
-    print("\n===== Błędne sortowania =====")
+    print("\n===== Problematyczne wyniki =====")
 
     if not rows:
-        print("Nie znaleziono błędnych wyników.")
+        print("Nie znaleziono problematycznych wyników.")
         return
 
     for row in rows:
         print(
             f"""
-                Algorytm: {row[0]}
-                Tryb: {row[1]}
-                Dane: {row[2]}
-                Rozmiar: {row[3]}
-                Rdzenie: {row[4]}
-                Status: {row[5]}
-                ------------------
+            ----------------------------------------
+            Algorytm:      {row[0]}
+            Tryb:          {row[1]}
+            Dane:          {row[2]}
+            Rozmiar:       {row[3]}
+            Rdzenie:       {row[4]}
+            Status:        {row[5]}
+            Poprawność:    {row[6]}
+            Powód:         {row[7]}
+            ----------------------------------------
             """
         )
 
@@ -302,9 +419,11 @@ def show_status_summary(db_path=DB_PATH):
         """
         SELECT
             status,
+            correctness,
             COUNT(*)
         FROM benchmark_results
-        GROUP BY status
+        GROUP BY status, correctness
+        ORDER BY status, correctness
         """
     )
 
@@ -314,8 +433,12 @@ def show_status_summary(db_path=DB_PATH):
 
     print("\n===== Podsumowania statusów =====")
 
-    for row in rows:
-        print(f"{row[0]} : {row[1]}")
+    for status, correctness, count in rows:
+        print(
+            f"Status: {status:<8}"
+            f" Poprawność: {correctness:<10}"
+            f" Liczba: {count}"
+        )
 
 
 def show_algorithm_summary(db_path=DB_PATH):
@@ -398,7 +521,8 @@ def show_algorithm_results(algorithm_name, limit=20, db_path=DB_PATH):
             speedup,
             efficiency,
             status,
-            correctness
+            correctness,
+            error_message
         FROM benchmark_results
         WHERE algorithm = ?
         ORDER BY id DESC
@@ -422,22 +546,24 @@ def show_algorithm_results(algorithm_name, limit=20, db_path=DB_PATH):
     for row in rows:
         print(
             f"""
-                ---------------------------------
-                Algorytm: {row[0]}
-                Tryb: {row[1]}
-                Dane: {row[2]}
-                Rozmiar: {row[3]}
-                Rdzenie: {row[4]}
-                
-                Czas: {row[5]:.6f} s
-                CPU: {row[6]:.2f} %
-                RAM średni: {row[7]:.2f} MB
-                RAM max: {row[8]:.2f} MB
-                
-                Speedup: {row[9]}
-                Efficiency: {row[10]}
-                
-                Status: {row[11]}
-                Poprawność: {row[12]}
+            ----------------------------------------
+            Algorytm:      {row[0]}
+            Tryb:          {row[1]}
+            Dane:          {row[2]}
+            Rozmiar:       {row[3]}
+            Rdzenie:       {row[4]}
+        
+            Czas:          {"-" if row[5] is None else f"{row[5]:.6f} s"}
+            CPU:           {"-" if row[6] is None else f"{row[6]:.2f} %"}
+            RAM średni:    {"-" if row[7] is None else f"{row[7]:.2f} MB"}
+            RAM max:       {"-" if row[8] is None else f"{row[8]:.2f} MB"}
+        
+            Speedup:       {"-" if row[9] is None else f"{row[9]:.4f}"}
+            Efficiency:    {"-" if row[10] is None else f"{row[10]:.4f}"}
+        
+            Status:        {row[11]}
+            Poprawność:    {row[12]}
+            Powód:         {row[13] if row[13] else "-"}
+            ----------------------------------------
             """
         )
