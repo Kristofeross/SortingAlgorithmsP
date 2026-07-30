@@ -47,10 +47,11 @@ def benchmark_worker(func, args, result_queue, sample_interval, profile_enabled,
 
         result = execute_algorithm(func, args)
 
+        end_time = time.perf_counter()
         stop_flag.set()
         monitor_thread.join()
 
-        execution_time = time.perf_counter() - start_time
+        execution_time = end_time - start_time
 
         if profile_enabled:
             profiler.disable()
