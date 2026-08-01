@@ -88,8 +88,7 @@ def show_system_info(db_path=DB_PATH):
             architecture,
             python_version,
             created_at
-        FROM system_info
-        LIMIT 1
+        FROM system_info LIMIT 1
         """
     )
 
@@ -136,6 +135,8 @@ def create_results_table(db_path=DB_PATH):
             max_mem REAL,
             speedup REAL,
             efficiency REAL,
+            avg_exact_cpu_time REAL,
+            min_sample_count INTEGER,
             status TEXT NOT NULL DEFAULT 'OK',
             correctness TEXT NOT NULL DEFAULT 'UNKNOWN',
             error_message TEXT,
@@ -161,48 +162,52 @@ def create_results_table(db_path=DB_PATH):
     conn.close()
 
 
-def save_benchmark_result( algorithm, mode, dataset, data_size, cores, stats, db_path=DB_PATH):
+def save_benchmark_result(algorithm, mode, dataset, data_size, cores, stats, db_path=DB_PATH):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
     cursor.execute(
-    """
-        INSERT INTO benchmark_results (
+        """
+            INSERT INTO benchmark_results (
+                algorithm,
+                mode,
+                dataset,
+                data_size,
+                cores,
+                avg_time,
+                median_time,
+                std_time,
+                avg_cpu,
+                avg_mem,
+                max_mem,
+                speedup,
+                efficiency,
+                avg_exact_cpu_time,
+                min_sample_count,
+                status,
+                correctness,
+                error_message
+            )VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
             algorithm,
             mode,
             dataset,
             data_size,
             cores,
-            avg_time,
-            median_time,
-            std_time,
-            avg_cpu,
-            avg_mem,
-            max_mem,
-            speedup,
-            efficiency,
-            status,
-            correctness,
-            error_message
-        )VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,(
-        algorithm,
-        mode,
-        dataset,
-        data_size,
-        cores,
-        stats["avg_time"],
-        stats["median_time"],
-        stats["std_time"],
-        stats["avg_cpu"],
-        stats["avg_mem"],
-        stats["max_mem"],
-        stats["speedup"],
-        stats["efficiency"],
-        stats["status"],
-        stats["correctness"],
-        stats["error_message"],
-    ))
+            stats["avg_time"],
+            stats["median_time"],
+            stats["std_time"],
+            stats["avg_cpu"],
+            stats["avg_mem"],
+            stats["max_mem"],
+            stats["speedup"],
+            stats["efficiency"],
+            stats["avg_exact_cpu_time"],
+            stats["min_sample_count"],
+            stats["status"],
+            stats["correctness"],
+            stats["error_message"],
+        ))
     conn.commit()
     conn.close()
 
@@ -211,29 +216,29 @@ def show_results(limit=20, db_path=DB_PATH):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute(
-    """
-        SELECT
-            id,
-            algorithm,
-            mode,
-            dataset,
-            data_size,
-            cores,
-            avg_time,
-            median_time,
-            std_time,
-            avg_cpu,
-            avg_mem,
-            max_mem,
-            speedup,
-            efficiency,
-            status,
-            error_message,
-            created_at
-        FROM benchmark_results
-        ORDER BY id DESC
-        LIMIT ?
-        """, (limit,)
+        """
+            SELECT
+                id,
+                algorithm,
+                mode,
+                dataset,
+                data_size,
+                cores,
+                avg_time,
+                median_time,
+                std_time,
+                avg_cpu,
+                avg_mem,
+                max_mem,
+                speedup,
+                efficiency,
+                avg_exact_cpu_time,
+                min_sample_count,
+                status,
+                error_message,
+                created_at
+            FROM benchmark_results ORDER BY id DESC LIMIT ?
+            """, (limit,)
     )
 
     rows = cursor.fetchall()
@@ -248,27 +253,32 @@ def show_results(limit=20, db_path=DB_PATH):
         max_ram = f"{row[11]:.2f} MB" if row[11] is not None else "-"
         speedup = (f"{row[12]:.4f}" if row[12] is not None else "-")
         efficiency = (f"{row[13]:.4f}" if row[13] is not None else "-")
-        error = (row[15] if row[15] is not None else "-")
+        exact_cpu = (f"{row[14]:.4f} s" if row[14] is not None else "-")
+        min_samples = (row[15] if row[15] is not None else "-")
+        error = (row[17] if row[17] is not None else "-")
 
         print(
             f"""
                 Algorytm: {row[1]}
                 Tryb: {row[2]}
-                Status: {row[14]}
+                Status: {row[16]}
                 Zestaw danych: {row[3]}
                 Rozmiar danych: {row[4]}
                 Rdzenie: {row[5]}
                 Średni czas: {avg_time}
                 Mediana: {median_time}
                 Odchylenie std: {std_time}
-                CPU: {cpu}
+                CPU (próbkowane): {cpu}
+                CPU dokładny (getrusage): {exact_cpu}
                 Średni RAM: {avg_ram}
                 Maksymalny RAM: {max_ram}
+                Min. liczba próbek: {min_samples}
                 Speedup: {speedup}
                 Efficiency: {efficiency}
                 Błąd: {error}
             """
         )
+
 
 # Test for datas
 def show_failed_tests(db_path=DB_PATH):
@@ -288,9 +298,7 @@ def show_failed_tests(db_path=DB_PATH):
             correctness,
             error_message
         FROM benchmark_results
-        WHERE status != 'OK'
-           OR correctness != 'CORRECT'
-        ORDER BY id
+        WHERE status != 'OK' OR correctness != 'CORRECT' ORDER BY id
         """
     )
 
@@ -312,7 +320,7 @@ def show_failed_tests(db_path=DB_PATH):
                 Dane: {row[3]}
                 Rozmiar: {row[4]}
                 Rdzenie: {row[5]}
-                
+
                 Status: {row[6]}
                 Poprawność: {row[7]}
                 Błąd: {row[8]}
@@ -334,14 +342,12 @@ def show_timeout_tests(db_path=DB_PATH):
             data_size,
             cores,
             error_message
-        FROM benchmark_results
-        WHERE status = 'TIMEOUT'
+        FROM benchmark_results WHERE status = 'TIMEOUT'
         """
     )
 
     rows = cursor.fetchall()
     conn.close()
-
 
     print("\n===== Timeouty =====")
 
@@ -379,9 +385,7 @@ def show_problem_results(db_path=DB_PATH):
             correctness,
             error_message
         FROM benchmark_results
-        WHERE status != 'OK'
-           OR correctness != 'CORRECT'
-        ORDER BY algorithm, mode, data_size, cores
+        WHERE status != 'OK' OR correctness != 'CORRECT' ORDER BY algorithm, mode, data_size, cores
         """
     )
 
@@ -417,19 +421,13 @@ def show_status_summary(db_path=DB_PATH):
 
     cursor.execute(
         """
-        SELECT
-            status,
-            correctness,
-            COUNT(*)
-        FROM benchmark_results
-        GROUP BY status, correctness
-        ORDER BY status, correctness
+        SELECT status, correctness, COUNT(*) FROM benchmark_results
+        GROUP BY status, correctness ORDER BY status, correctness
         """
     )
 
     rows = cursor.fetchall()
     conn.close()
-
 
     print("\n===== Podsumowania statusów =====")
 
@@ -447,13 +445,8 @@ def show_algorithm_summary(db_path=DB_PATH):
 
     cursor.execute(
         """
-        SELECT
-            algorithm,
-            mode,
-            COUNT(*)
-        FROM benchmark_results
-        GROUP BY algorithm, mode
-        ORDER BY algorithm
+        SELECT algorithm, mode, COUNT(*) FROM benchmark_results
+        GROUP BY algorithm, mode ORDER BY algorithm
         """
     )
 
@@ -520,6 +513,8 @@ def show_algorithm_results(algorithm_name, limit=20, db_path=DB_PATH):
             max_mem,
             speedup,
             efficiency,
+            avg_exact_cpu_time,
+            min_sample_count,
             status,
             correctness,
             error_message
@@ -552,18 +547,20 @@ def show_algorithm_results(algorithm_name, limit=20, db_path=DB_PATH):
             Dane:          {row[2]}
             Rozmiar:       {row[3]}
             Rdzenie:       {row[4]}
-        
+
             Czas:          {"-" if row[5] is None else f"{row[5]:.6f} s"}
-            CPU:           {"-" if row[6] is None else f"{row[6]:.2f} %"}
+            CPU (próbkowane):  {"-" if row[6] is None else f"{row[6]:.2f} %"}
+            CPU dokładny:      {"-" if row[11] is None else f"{row[11]:.4f} s"}
             RAM średni:    {"-" if row[7] is None else f"{row[7]:.2f} MB"}
             RAM max:       {"-" if row[8] is None else f"{row[8]:.2f} MB"}
-        
+            Min. próbek:   {"-" if row[12] is None else row[12]}
+
             Speedup:       {"-" if row[9] is None else f"{row[9]:.4f}"}
             Efficiency:    {"-" if row[10] is None else f"{row[10]:.4f}"}
-        
-            Status:        {row[11]}
-            Poprawność:    {row[12]}
-            Powód:         {row[13] if row[13] else "-"}
+
+            Status:        {row[13]}
+            Poprawność:    {row[14]}
+            Powód:         {row[15] if row[15] else "-"}
             ----------------------------------------
             """
         )
