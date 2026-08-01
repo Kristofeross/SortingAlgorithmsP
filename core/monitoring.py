@@ -2,11 +2,32 @@ import time
 import psutil
 
 
+try:
+    import resource
+    HAS_RESOURCE = True
+except ImportError:
+    # Windows does not have a 'resource' module
+    resource = None
+    HAS_RESOURCE = False
+
+
 def get_processes(proc):
     try:
         return [proc] + proc.children(recursive=True)
     except psutil.NoSuchProcess:
         return []
+
+
+def get_memory_mb(process):
+    try:
+        full_info = process.memory_full_info()
+        if hasattr(full_info, "pss"):
+            return full_info.pss / (1024 ** 2)
+    except (psutil.NoSuchProcess, psutil.AccessDenied, AttributeError, ValueError):
+        pass
+
+    # Fallback: Regular RSS
+    return process.memory_info().rss / (1024 ** 2)
 
 
 def measure_usage(proc, interval, cpu_samples, mem_samples, states, stop_flag):
@@ -22,14 +43,13 @@ def measure_usage(proc, interval, cpu_samples, mem_samples, states, stop_flag):
 
         processes = get_processes(proc)
 
-        # print("\n--- MONITOR PROCESÓW ---")
 
         for process in processes:
             try:
                 cpu_times = process.cpu_times()
 
                 current_cpu_time = cpu_times.user + cpu_times.system
-                mem = process.memory_info().rss / (1024 ** 2)
+                mem = get_memory_mb(process)
                 total_mem += mem
 
                 if process.pid in previous_cpu_times:
@@ -47,12 +67,6 @@ def measure_usage(proc, interval, cpu_samples, mem_samples, states, stop_flag):
                 previous_cpu_times[process.pid] = current_cpu_time
                 total_cpu_percent += cpu_percent
 
-                # print(
-                #     f"PID: {process.pid} | "
-                #     f"Nazwa: {process.name()} | "
-                #     f"CPU: {cpu_percent:.2f}% | "
-                #     f"RAM: {mem:.2f} MB"
-                # )
 
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 continue
@@ -64,13 +78,6 @@ def measure_usage(proc, interval, cpu_samples, mem_samples, states, stop_flag):
             if pid not in active_pids:
                 del previous_cpu_times[pid]
 
-        # print("------------------------")
-        # print(f"Liczba procesów: {len(processes)}")
-        # print(
-        #     f"SUMA CPU: {total_cpu_percent:.2f}% | "
-        #     f"SUMA RAM: {total_mem:.2f} MB"
-        # )
-        # print("------------------------")
 
         cpu_samples.append(total_cpu_percent)
         mem_samples.append(total_mem)
@@ -80,3 +87,11 @@ def measure_usage(proc, interval, cpu_samples, mem_samples, states, stop_flag):
         states.append(state)
         previous_wall_time = current_wall_time
         time.sleep(interval)
+
+
+def get_exact_children_cpu_time():
+    if not HAS_RESOURCE:
+        return None
+
+    usage = resource.getrusage(resource.RUSAGE_CHILDREN)
+    return usage.ru_utime + usage.ru_stime
