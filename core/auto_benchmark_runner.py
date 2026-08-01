@@ -8,8 +8,15 @@ from core.hardware import get_system_info, get_available_cores
 from core.results_database import create_results_table, create_system_info_table, save_system_info, save_benchmark_result
 
 
-USE_LOGICAL_CORES = False
+USE_LOGICAL_CORES = True
 
+# sx
+def get_sample_interval(data_size):
+    if data_size <= 10_000:
+        return 0.01
+
+    return 0.05
+# ex
 
 def run_auto_benchmarks():
     create_results_table()
@@ -46,6 +53,9 @@ def run_auto_benchmarks():
                 print(f"Rozmiar danych: {data_size}")
 
                 data = get_data_from_db(table_name, data_size)
+                # sx
+                sample_interval = get_sample_interval(len(data))
+                # ex
 
                 print(f"Pobrano {len(data)} rekordów")
 
@@ -60,7 +70,8 @@ def run_auto_benchmarks():
                 sequential_stats = profile_function(
                     algorithm["sequential"],
                     data,
-                    label=f"{algorithm['name']} - Sequential"
+                    label=f"{algorithm['name']} - Sequential",
+                    sample_interval=sample_interval # tests sx
                 )
 
                 save_benchmark_result(
@@ -100,7 +111,8 @@ def run_auto_benchmarks():
                             max_depth,
                             label=f"{algorithm['name']} - Parallel",
                             sequential_time=sequential_stats["avg_time"],
-                            cores=cores
+                            cores=cores,
+                            sample_interval=sample_interval # tests sx
                         )
 
                     elif algorithm["name"] in ("Bucket Sort", "Sample Sort"):
@@ -110,7 +122,8 @@ def run_auto_benchmarks():
                             cores,
                             label=f"{algorithm['name']} - Parallel",
                             sequential_time=sequential_stats["avg_time"],
-                            cores=cores
+                            cores=cores,
+                            sample_interval=sample_interval # tests sx
                         )
 
                     else:

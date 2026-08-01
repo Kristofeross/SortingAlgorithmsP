@@ -8,10 +8,10 @@ from core.hardware import get_system_info
 from core.results_database import create_system_info_table, save_system_info, create_results_table, save_benchmark_result
 
 TEST_ALGORITHMS = {
-    # "1": ALGORITHMS["1"], # Quick Sort
+    "1": ALGORITHMS["1"], # Quick Sort
     # "2": ALGORITHMS["2"], # Merge Sort
     # "3": ALGORITHMS["3"], # Bucket Sort
-    "4": ALGORITHMS["4"]  # Sample Sort
+    # "4": ALGORITHMS["4"]  # Sample Sort
 }
 TEST_TABLES = {
     "1": DATA_TABLES["1"], # Losowe liczby całkowite
@@ -34,6 +34,14 @@ TEST_SIZES = {
     "4": DATA_SIZES["4"]  # 1000000
 }
 TEST_CORES = [2, 4, 8]
+
+# sx
+def get_sample_interval(data_size):
+    if data_size <= 10_000:
+        return 0.01
+
+    return 0.05
+# ex
 
 
 def run_quick_auto_benchmarks():
@@ -67,7 +75,9 @@ def run_quick_auto_benchmarks():
                 print(f"Rozmiar danych: {set_size}")
 
                 data = get_data_from_db(table_name, set_size)
-
+                # sx
+                sample_interval = get_sample_interval(len(data))
+                # ex
                 print(f"Pobrano {len(data)} rekordów\n")
 
                 # Sequential benchmark
@@ -80,7 +90,8 @@ def run_quick_auto_benchmarks():
                 sequential_stats = profile_function(
                     algorithm["sequential"],
                     data,
-                    label=f"{algorithm['name']} - Sequential"
+                    label=f"{algorithm['name']} - Sequential",
+                    sample_interval=sample_interval # tests sx
                 )
 
 
@@ -120,7 +131,8 @@ def run_quick_auto_benchmarks():
                             max_depth,
                             label=f"{algorithm['name']} - Parallel",
                             sequential_time=sequential_stats["avg_time"],
-                            cores=cores
+                            cores=cores,
+                            sample_interval=sample_interval  # tests sx
                         )
 
                     elif algorithm["name"] in ("Bucket Sort", "Sample Sort"):
@@ -130,7 +142,8 @@ def run_quick_auto_benchmarks():
                             cores,
                             label=f"{algorithm['name']} - Parallel",
                             sequential_time=sequential_stats["avg_time"],
-                            cores=cores
+                            cores=cores,
+                            sample_interval=sample_interval  # tests sx
                         )
 
                     else:
