@@ -3,6 +3,9 @@ from pathlib import Path
 
 from visualization.config import (
     CHARTS_DIR,
+    TABLES_DIR,
+    DECISION_TABLE_DIR,
+    COMPLEXITY_TABLES_DIR,
 
     EXECUTION_TIME_DIR,
     EXECUTION_TIME_VS_DATA_SIZE_DIR,
@@ -54,6 +57,9 @@ def create_results_directories() -> None:
 
     directories = [
         CHARTS_DIR,
+        TABLES_DIR,
+        DECISION_TABLE_DIR,
+        COMPLEXITY_TABLES_DIR,
 
         EXECUTION_TIME_DIR,
         EXECUTION_TIME_VS_DATA_SIZE_DIR,

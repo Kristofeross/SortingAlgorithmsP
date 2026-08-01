@@ -9,6 +9,9 @@ CHARTS_DIR = RESULTS_DIR / "charts"
 TABLES_DIR = RESULTS_DIR / "tables"
 REPORTS_DIR = RESULTS_DIR / "reports"
 
+DECISION_TABLE_DIR = TABLES_DIR / "decision_table"
+COMPLEXITY_TABLES_DIR = TABLES_DIR / "complexity"
+
 # Chart catalogs
 EXECUTION_TIME_DIR = CHARTS_DIR / "execution_time"
 EXECUTION_TIME_VS_DATA_SIZE_DIR = EXECUTION_TIME_DIR / "vs_data_size"
@@ -42,6 +45,7 @@ DATASETS_SORTEDNESS_DIR = DATASETS_DIR / "sortedness"
 
 HEATMAPS_DIR = CHARTS_DIR / "heatmaps"
 RANKING_DIR = CHARTS_DIR / "ranking"
+COMPLEXITY_DIR = CHARTS_DIR / "complexity"
 
 # Chart parameters
 FIGURE_WIDTH = 12

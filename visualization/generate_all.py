@@ -7,6 +7,8 @@ from visualization.charts.cpu import generate_all_cpu_charts
 from visualization.charts.memory import generate_all_memory_charts
 from visualization.charts.heatmaps import generate_all_heatmap_charts
 from visualization.charts.ranking import generate_all_ranking_charts
+from visualization.analysis.decision_table import generate_decision_table
+from visualization.analysis.complexity import generate_complexity_analysis
 
 
 def generate_all() -> None:
@@ -38,6 +40,10 @@ def generate_all() -> None:
 
     # Overall ranking
     generate_all_ranking_charts()
+
+    # Decision table and complexity analysis
+    generate_decision_table()
+    generate_complexity_analysis()
 
     print()
     print("================   Zakończeno generowanie wykresów   ================")
