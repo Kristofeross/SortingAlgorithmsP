@@ -6,6 +6,18 @@ from multiprocessing import shared_memory
 from algorithms.shared_memory.mergesort.sequential import merge_sort
 
 
+MIN_SIZE_FOR_PARALLEL = 5000
+MIN_GROUP_SIZE = 2000
+
+
+def should_run_parallel(data_size):
+    return data_size > MIN_SIZE_FOR_PARALLEL
+
+
+def should_spawn_for_group(group_size):
+    return group_size > MIN_GROUP_SIZE
+
+
 def get_ctype(dtype):
     if dtype is int:
         return ctypes.c_longlong
@@ -45,7 +57,6 @@ def close_shared_memory(shm):
 def destroy_shared_memory(shm):
     shm.close()
     shm.unlink()
-
 
 # version without NumPy
 # def distribute_to_buckets(arr, bucket_count):
@@ -102,9 +113,10 @@ def distribute_to_buckets(arr, bucket_count):
     buckets = [[] for _ in range(bucket_count)]
     boundaries = np.searchsorted(sorted_indices, np.arange(bucket_count + 1))
     for i in range(bucket_count):
-        buckets[i] = sorted_values[boundaries[i]:boundaries[i+1]].tolist()
+        buckets[i] = sorted_values[boundaries[i]:boundaries[i + 1]].tolist()
 
     return buckets
+
 
 def flatten_buckets(buckets):
     flat_data = []
@@ -143,4 +155,4 @@ def split_bucket_ranges(bucket_ranges, process_count):
 
 def sort_bucket(bucket):
     merge_sort(bucket)
-    return  bucket
+    return bucket

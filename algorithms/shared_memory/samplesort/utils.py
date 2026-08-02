@@ -2,10 +2,24 @@ import ctypes
 import os
 import math
 import numpy as np
-
 from multiprocessing import shared_memory
 
 from algorithms.shared_memory.mergesort.sequential import merge_sort
+
+
+MIN_SIZE_PER_CORE = 50_000
+MIN_GROUP_SIZE = 5000
+MIN_PROCESSES_FOR_BENEFIT = 4
+
+
+def should_run_parallel(data_size, process_count):
+    if process_count < MIN_PROCESSES_FOR_BENEFIT:
+        return False
+    if data_size < process_count * MIN_SIZE_PER_CORE:
+        return False
+    if (data_size // process_count) < MIN_GROUP_SIZE:
+        return False
+    return True
 
 
 def get_ctype(dtype):
@@ -159,7 +173,7 @@ def split_bucket_ranges(bucket_ranges, process_count):
     groups = []
 
     for i in range(0, n, chunk_size):
-        groups.append( bucket_ranges[i:i + chunk_size] )
+        groups.append(bucket_ranges[i:i + chunk_size])
 
     return groups
 

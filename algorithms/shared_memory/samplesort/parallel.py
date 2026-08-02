@@ -1,12 +1,8 @@
 import multiprocessing as mp
 
 from .utils import (attach_shared_array, create_shared_array, destroy_shared_memory, split_ranges, select_samples,
-                    choose_pivots, distribute_to_buckets, flatten_buckets, split_bucket_ranges, sort_bucket)
+                    choose_pivots, distribute_to_buckets, flatten_buckets, split_bucket_ranges, sort_bucket, should_run_parallel, MIN_GROUP_SIZE)
 from .sequential import sample_sort
-
-MIN_SIZE_FOR_PARALLEL = 20000 # na razie zrezygnowano, nigdzie nie używane
-MIN_SIZE_PER_CORE = 50_000
-MIN_GROUP_SIZE = 5000
 
 
 def local_sort_worker(shm_name, length, dtype, start, end):
@@ -54,7 +50,7 @@ def parallel_sample_sort(data, process_count):
     if len(data) <= 1:
         return data
 
-    if len(data) < process_count * MIN_SIZE_PER_CORE or (len(data) // process_count) < MIN_GROUP_SIZE:
+    if not should_run_parallel(len(data), process_count):
         return sample_sort(data)
 
     dtype = type(data[0])
@@ -75,14 +71,12 @@ def parallel_sample_sort(data, process_count):
         for process in processes:
             process.join()
 
-
         samples = []
 
         for start, end in ranges:
-            samples.extend( select_samples(arr[start:end], process_count) )
+            samples.extend(select_samples(arr[start:end], process_count))
 
         pivots = choose_pivots(samples, process_count)
-
 
         buckets = [[] for _ in range(len(pivots) + 1)]
 
@@ -92,11 +86,9 @@ def parallel_sample_sort(data, process_count):
             for i in range(len(local_buckets)):
                 buckets[i].extend(local_buckets[i])
 
-
     finally:
         del arr
         destroy_shared_memory(shm)
-
 
     flat_data, bucket_ranges = flatten_buckets(buckets)
     shm, arr = create_shared_array(flat_data, dtype)
