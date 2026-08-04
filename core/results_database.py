@@ -5,8 +5,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "dane.db")
 
 
+def get_connection(db_path=DB_PATH):
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
 def create_system_info_table():
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute(
@@ -32,7 +38,7 @@ def create_system_info_table():
 
 
 def save_system_info(info):
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute(
@@ -73,7 +79,7 @@ def save_system_info(info):
 
 
 def show_system_info(db_path=DB_PATH):
-    conn = sqlite3.connect(db_path)
+    conn = get_connection(db_path)
     cursor = conn.cursor()
 
     cursor.execute(
@@ -103,20 +109,20 @@ def show_system_info(db_path=DB_PATH):
 
     print(
         f"""
-        Procesor:             {row[0]}
-        Rdzenie fizyczne:     {row[1]}
-        Rdzenie logiczne:     {row[2]}
-        Taktowanie CPU:       {row[3]:.0f} MHz
-        Pamięć RAM:           {row[4]:.2f} GB
-        System operacyjny:    {row[5]}
-        Architektura:         {row[6]}
-        Python:               {row[7]}
+        Procesor:             {row["cpu_name"]}
+        Rdzenie fizyczne:     {row["physical_cores"]}
+        Rdzenie logiczne:     {row["logical_cores"]}
+        Taktowanie CPU:       {row["cpu_frequency"]:.0f} MHz
+        Pamięć RAM:           {row["ram_gb"]:.2f} GB
+        System operacyjny:    {row["operating_system"]}
+        Architektura:         {row["architecture"]}
+        Python:               {row["python_version"]}
         """
     )
 
 
 def create_results_table(db_path=DB_PATH):
-    conn = sqlite3.connect(db_path)
+    conn = get_connection(db_path)
     cursor = conn.cursor()
     cursor.execute(
         """
@@ -163,7 +169,7 @@ def create_results_table(db_path=DB_PATH):
 
 
 def save_benchmark_result(algorithm, mode, dataset, data_size, cores, stats, db_path=DB_PATH):
-    conn = sqlite3.connect(db_path)
+    conn = get_connection(db_path)
     cursor = conn.cursor()
 
     cursor.execute(
@@ -212,13 +218,45 @@ def save_benchmark_result(algorithm, mode, dataset, data_size, cores, stats, db_
     conn.close()
 
 
+def format_result_row(row, include_status=True) -> str:
+    text = f"""
+            ----------------------------------------
+            Algorytm:      {row["algorithm"]}
+            Tryb:          {row["mode"]}
+            Dane:          {row["dataset"]}
+            Rozmiar:       {row["data_size"]}
+            Rdzenie:       {row["cores"]}
+
+            Czas średni:       {"-" if row["avg_time"] is None else f'{row["avg_time"]:.6f} s'}
+            Mediana:           {"-" if row["median_time"] is None else f'{row["median_time"]:.6f} s'}
+            Odchylenie std:    {"-" if row["std_time"] is None else f'{row["std_time"]:.6f} s'}
+            CPU (próbkowane):  {"-" if row["avg_cpu"] is None else f'{row["avg_cpu"]:.2f} %'}
+            CPU dokładny:      {"-" if row["avg_exact_cpu_time"] is None else f'{row["avg_exact_cpu_time"]:.4f} s'}
+            RAM średni:        {"-" if row["avg_mem"] is None else f'{row["avg_mem"]:.2f} MB'}
+            RAM max:           {"-" if row["max_mem"] is None else f'{row["max_mem"]:.2f} MB'}
+            Min. próbek:       {"-" if row["min_sample_count"] is None else row["min_sample_count"]}
+
+            Speedup:       {"-" if row["speedup"] is None else f'{row["speedup"]:.4f}'}
+            Efficiency:    {"-" if row["efficiency"] is None else f'{row["efficiency"]:.4f}'}
+    """
+
+    if include_status:
+        text += f"""
+            Status:        {row["status"]}
+            Poprawność:    {row["correctness"]}
+            Powód:         {row["error_message"] if row["error_message"] else "-"}
+    """
+
+    text += "            ----------------------------------------"
+    return text
+
+
 def show_results(limit=20, db_path=DB_PATH):
-    conn = sqlite3.connect(db_path)
+    conn = get_connection(db_path)
     cursor = conn.cursor()
     cursor.execute(
         """
             SELECT
-                id,
                 algorithm,
                 mode,
                 dataset,
@@ -235,8 +273,8 @@ def show_results(limit=20, db_path=DB_PATH):
                 avg_exact_cpu_time,
                 min_sample_count,
                 status,
-                error_message,
-                created_at
+                correctness,
+                error_message
             FROM benchmark_results ORDER BY id DESC LIMIT ?
             """, (limit,)
     )
@@ -245,44 +283,11 @@ def show_results(limit=20, db_path=DB_PATH):
     conn.close()
 
     for row in rows:
-        avg_time = (f"{row[6]:.6f} s" if row[6] is not None else "-")
-        median_time = (f"{row[7]:.6f} s" if row[7] is not None else "-")
-        std_time = (f"{row[8]:.6f} s" if row[8] is not None else "-")
-        cpu = (f"{row[9]:.2f}%" if row[9] is not None else "-")
-        avg_ram = (f"{row[10]:.2f} MB" if row[10] is not None else "-")
-        max_ram = f"{row[11]:.2f} MB" if row[11] is not None else "-"
-        speedup = (f"{row[12]:.4f}" if row[12] is not None else "-")
-        efficiency = (f"{row[13]:.4f}" if row[13] is not None else "-")
-        exact_cpu = (f"{row[14]:.4f} s" if row[14] is not None else "-")
-        min_samples = (row[15] if row[15] is not None else "-")
-        error = (row[17] if row[17] is not None else "-")
-
-        print(
-            f"""
-                Algorytm: {row[1]}
-                Tryb: {row[2]}
-                Status: {row[16]}
-                Zestaw danych: {row[3]}
-                Rozmiar danych: {row[4]}
-                Rdzenie: {row[5]}
-                Średni czas: {avg_time}
-                Mediana: {median_time}
-                Odchylenie std: {std_time}
-                CPU (próbkowane): {cpu}
-                CPU dokładny (getrusage): {exact_cpu}
-                Średni RAM: {avg_ram}
-                Maksymalny RAM: {max_ram}
-                Min. liczba próbek: {min_samples}
-                Speedup: {speedup}
-                Efficiency: {efficiency}
-                Błąd: {error}
-            """
-        )
+        print(format_result_row(row, include_status=True))
 
 
-# Test for datas
 def show_failed_tests(db_path=DB_PATH):
-    conn = sqlite3.connect(db_path)
+    conn = get_connection(db_path)
     cursor = conn.cursor()
 
     cursor.execute(
@@ -314,23 +319,23 @@ def show_failed_tests(db_path=DB_PATH):
     for row in rows:
         print(
             f"""
-                ID: {row[0]}
-                Algorytm: {row[1]}
-                Tryb: {row[2]}
-                Dane: {row[3]}
-                Rozmiar: {row[4]}
-                Rdzenie: {row[5]}
+                ID: {row["id"]}
+                Algorytm: {row["algorithm"]}
+                Tryb: {row["mode"]}
+                Dane: {row["dataset"]}
+                Rozmiar: {row["data_size"]}
+                Rdzenie: {row["cores"]}
 
-                Status: {row[6]}
-                Poprawność: {row[7]}
-                Błąd: {row[8]}
+                Status: {row["status"]}
+                Poprawność: {row["correctness"]}
+                Błąd: {row["error_message"]}
                 --------------------------
             """
         )
 
 
 def show_timeout_tests(db_path=DB_PATH):
-    conn = sqlite3.connect(db_path)
+    conn = get_connection(db_path)
     cursor = conn.cursor()
 
     cursor.execute(
@@ -358,19 +363,19 @@ def show_timeout_tests(db_path=DB_PATH):
     for row in rows:
         print(
             f"""
-                Algorytm: {row[0]}
-                Tryb: {row[1]}
-                Dane: {row[2]}
-                Rozmiar: {row[3]}
-                Rdzenie: {row[4]}
-                Info: {row[5]}
+                Algorytm: {row["algorithm"]}
+                Tryb: {row["mode"]}
+                Dane: {row["dataset"]}
+                Rozmiar: {row["data_size"]}
+                Rdzenie: {row["cores"]}
+                Info: {row["error_message"]}
                 ------------------
             """
         )
 
 
 def show_problem_results(db_path=DB_PATH):
-    conn = sqlite3.connect(db_path)
+    conn = get_connection(db_path)
     cursor = conn.cursor()
 
     cursor.execute(
@@ -402,27 +407,26 @@ def show_problem_results(db_path=DB_PATH):
         print(
             f"""
             ----------------------------------------
-            Algorytm:      {row[0]}
-            Tryb:          {row[1]}
-            Dane:          {row[2]}
-            Rozmiar:       {row[3]}
-            Rdzenie:       {row[4]}
-            Status:        {row[5]}
-            Poprawność:    {row[6]}
-            Powód:         {row[7]}
+            Algorytm:      {row["algorithm"]}
+            Tryb:          {row["mode"]}
+            Dane:          {row["dataset"]}
+            Rozmiar:       {row["data_size"]}
+            Rdzenie:       {row["cores"]}
+            Status:        {row["status"]}
+            Poprawność:    {row["correctness"]}
+            Powód:         {row["error_message"]}
             ----------------------------------------
             """
         )
 
 
 def show_status_summary(db_path=DB_PATH):
-    conn = sqlite3.connect(db_path)
+    conn = get_connection(db_path)
     cursor = conn.cursor()
 
     cursor.execute(
         """
-        SELECT status, correctness, COUNT(*) FROM benchmark_results
-        GROUP BY status, correctness ORDER BY status, correctness
+        SELECT status, correctness, COUNT(*) as count FROM benchmark_results GROUP BY status, correctness ORDER BY status, correctness
         """
     )
 
@@ -431,22 +435,21 @@ def show_status_summary(db_path=DB_PATH):
 
     print("\n===== Podsumowania statusów =====")
 
-    for status, correctness, count in rows:
+    for row in rows:
         print(
-            f"Status: {status:<8}"
-            f" Poprawność: {correctness:<10}"
-            f" Liczba: {count}"
+            f"Status: {row['status']:<8}"
+            f" Poprawność: {row['correctness']:<10}"
+            f" Liczba: {row['count']}"
         )
 
 
 def show_algorithm_summary(db_path=DB_PATH):
-    conn = sqlite3.connect(db_path)
+    conn = get_connection(db_path)
     cursor = conn.cursor()
 
     cursor.execute(
         """
-        SELECT algorithm, mode, COUNT(*) FROM benchmark_results
-        GROUP BY algorithm, mode ORDER BY algorithm
+        SELECT algorithm, mode, COUNT(*) as count FROM benchmark_results GROUP BY algorithm, mode ORDER BY algorithm
         """
     )
 
@@ -456,18 +459,14 @@ def show_algorithm_summary(db_path=DB_PATH):
     print("\n===== Liczba testów =====")
 
     for row in rows:
-        print(f"{row[0]} | {row[1]} : {row[2]}")
+        print(f"{row['algorithm']} | {row['mode']} : {row['count']}")
 
 
 def clear_results(db_path=DB_PATH):
-    conn = sqlite3.connect(db_path)
+    conn = get_connection(db_path)
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        DELETE FROM benchmark_results
-        """
-    )
+    cursor.execute("DELETE FROM benchmark_results")
 
     conn.commit()
     conn.close()
@@ -476,17 +475,12 @@ def clear_results(db_path=DB_PATH):
 
 
 def count_results(db_path=DB_PATH):
-    conn = sqlite3.connect(db_path)
+    conn = get_connection(db_path)
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        SELECT COUNT(*)
-        FROM benchmark_results
-        """
-    )
+    cursor.execute("SELECT COUNT(*) as count FROM benchmark_results")
 
-    count = cursor.fetchone()[0]
+    count = cursor.fetchone()["count"]
     conn.close()
 
     print("\n===== Liczba wszystkich testów =====")
@@ -496,7 +490,7 @@ def count_results(db_path=DB_PATH):
 
 
 def show_algorithm_results(algorithm_name, limit=20, db_path=DB_PATH):
-    conn = sqlite3.connect(db_path)
+    conn = get_connection(db_path)
     cursor = conn.cursor()
 
     cursor.execute(
@@ -508,6 +502,8 @@ def show_algorithm_results(algorithm_name, limit=20, db_path=DB_PATH):
             data_size,
             cores,
             avg_time,
+            median_time,
+            std_time,
             avg_cpu,
             avg_mem,
             max_mem,
@@ -523,10 +519,7 @@ def show_algorithm_results(algorithm_name, limit=20, db_path=DB_PATH):
         ORDER BY id DESC
         LIMIT ?
         """,
-        (
-            algorithm_name,
-            limit
-        )
+        (algorithm_name, limit)
     )
 
     rows = cursor.fetchall()
@@ -539,28 +532,47 @@ def show_algorithm_results(algorithm_name, limit=20, db_path=DB_PATH):
         return
 
     for row in rows:
-        print(
-            f"""
-            ----------------------------------------
-            Algorytm:      {row[0]}
-            Tryb:          {row[1]}
-            Dane:          {row[2]}
-            Rozmiar:       {row[3]}
-            Rdzenie:       {row[4]}
+        print(format_result_row(row, include_status=True))
 
-            Czas:          {"-" if row[5] is None else f"{row[5]:.6f} s"}
-            CPU (próbkowane):  {"-" if row[6] is None else f"{row[6]:.2f} %"}
-            CPU dokładny:      {"-" if row[11] is None else f"{row[11]:.4f} s"}
-            RAM średni:    {"-" if row[7] is None else f"{row[7]:.2f} MB"}
-            RAM max:       {"-" if row[8] is None else f"{row[8]:.2f} MB"}
-            Min. próbek:   {"-" if row[12] is None else row[12]}
 
-            Speedup:       {"-" if row[9] is None else f"{row[9]:.4f}"}
-            Efficiency:    {"-" if row[10] is None else f"{row[10]:.4f}"}
+def show_dataset_results(dataset_name, limit=200, db_path=DB_PATH):
+    conn = get_connection(db_path)
+    cursor = conn.cursor()
 
-            Status:        {row[13]}
-            Poprawność:    {row[14]}
-            Powód:         {row[15] if row[15] else "-"}
-            ----------------------------------------
-            """
-        )
+    cursor.execute(
+        """
+        SELECT
+            algorithm,
+            mode,
+            dataset,
+            data_size,
+            cores,
+            avg_time,
+            median_time,
+            std_time,
+            avg_cpu,
+            avg_mem,
+            max_mem,
+            speedup,
+            efficiency,
+            avg_exact_cpu_time,
+            min_sample_count
+        FROM benchmark_results
+        WHERE dataset = ?
+        ORDER BY algorithm, mode, data_size, cores
+        LIMIT ?
+        """,
+        (dataset_name, limit)
+    )
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    print(f"\n===== Wyniki dla zbioru danych: {dataset_name} =====")
+
+    if not rows:
+        print("Brak wyników dla tego zbioru danych.")
+        return
+
+    for row in rows:
+        print(format_result_row(row, include_status=False))
