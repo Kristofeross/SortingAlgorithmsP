@@ -9,13 +9,52 @@ from algorithms.shared_memory.mergesort.sequential import merge_sort
 MIN_SIZE_FOR_PARALLEL = 5000
 MIN_GROUP_SIZE = 2000
 
+# {cores: próg}
+PARALLEL_SIZE_CUTOFF = {
+    2: 100_000,
+    4: 100_000,
+    8: 100_000,
+    16: 200_000,
+    32: 200_000,
+    64: 200_000,
+    128: 400_000,
+}
 
-def should_run_parallel(data_size):
-    return data_size > MIN_SIZE_FOR_PARALLEL
+GROUP_SIZE_CUTOFF = {
+    2: 2_000,
+    4: 2_000,
+    8: 2_000,
+    16: 4_000,
+    32: 4_000,
+    64: 4_000,
+    128: 8_000,
+}
 
 
-def should_spawn_for_group(group_size):
-    return group_size > MIN_GROUP_SIZE
+def get_parallel_size_cutoff(process_count):
+    cutoff = PARALLEL_SIZE_CUTOFF.get(process_count)
+
+    if cutoff is None:
+        return MIN_SIZE_FOR_PARALLEL
+
+    return cutoff
+
+
+def get_group_size_cutoff(process_count):
+    cutoff = GROUP_SIZE_CUTOFF.get(process_count)
+
+    if cutoff is None:
+        return MIN_GROUP_SIZE
+
+    return cutoff
+
+
+def should_run_parallel(data_size, process_count):
+    return data_size > get_parallel_size_cutoff(process_count)
+
+
+def should_spawn_for_group(group_size, process_count):
+    return group_size > get_group_size_cutoff(process_count)
 
 
 def get_ctype(dtype):

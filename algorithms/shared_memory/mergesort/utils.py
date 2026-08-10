@@ -1,6 +1,29 @@
 import ctypes
-
 from multiprocessing import shared_memory
+
+
+# {cores: próg_min_size}
+PARALLEL_CUTOFF = {
+    2: 50_000,
+    4: 100_000,
+    8: 300_000,
+    16: 600_000,
+    32: 1_200_000,
+    64: 2_400_000,
+    128: 4_800_000,
+    # version closer to a multiple of 100 000
+    # 2: 50_000,
+    # 4: 100_000,
+    # 8: 300_000,
+    # 16: 600_000,
+    # 32: 1_200_000,
+    # 64: 2_500_000,
+    # 128: 5_000_000,
+}
+
+
+def get_parallel_cutoff(cores):
+    return PARALLEL_CUTOFF.get(cores)
 
 
 def merge(arr, left, mid, right):
@@ -68,12 +91,13 @@ def attach_shared_array(name, length, dtype):
 def calculate_min_size(data_size, max_depth):
     cores = 1 << max_depth
 
-    return max(5000, data_size // (cores * 8))
-    # return max(4000, data_size // (cores * 6))
-    # return max(3000, data_size // (cores * 4))
-    # return max(20000, data_size // (cores * 4))
-    # return max(50000, data_size // (cores * 2))
+    cutoff = get_parallel_cutoff(cores)
+    fallback = max(5000, data_size // (cores * 8))
 
+    if cutoff is None:
+        return fallback
+
+    return cutoff
 
 def close_shared_memory(shm):
     shm.close()

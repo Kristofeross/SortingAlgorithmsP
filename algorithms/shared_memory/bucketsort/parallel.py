@@ -1,8 +1,8 @@
 import multiprocessing as mp
 
-from algorithms.shared_memory.bucketsort.utils import (attach_shared_array, create_shared_array, destroy_shared_memory,calculate_bucket_count,
-                    distribute_to_buckets, flatten_buckets, split_bucket_ranges, sort_bucket, should_run_parallel, should_spawn_for_group,
-                                                       MIN_SIZE_FOR_PARALLEL, MIN_GROUP_SIZE)
+from algorithms.shared_memory.bucketsort.utils import (attach_shared_array, create_shared_array, destroy_shared_memory,
+                    calculate_bucket_count, distribute_to_buckets, flatten_buckets, split_bucket_ranges, sort_bucket,
+                    should_run_parallel, should_spawn_for_group, get_group_size_cutoff)
 
 
 # version with min group size
@@ -72,9 +72,15 @@ def parallel_bucket_sort(data, process_count):
     # version with min group size - more optimized
     # if len(data) <= MIN_SIZE_FOR_PARALLEL or (len(data) // process_count) < MIN_GROUP_SIZE:
     #     return sort_bucket(data)
-    if not should_run_parallel(len(data)) or (len(data) // process_count) < MIN_GROUP_SIZE:
-        return sort_bucket(data)
+    # if not should_run_parallel(len(data)) or (len(data) // process_count) < MIN_GROUP_SIZE:
+    #     return sort_bucket(data) # almast done
     # end
+
+
+    # the newest attempt
+    if not should_run_parallel(len(data), process_count) or (len(data) // process_count) < get_group_size_cutoff(process_count):
+        return sort_bucket(data)
+    # ex
 
     dtype = type(data[0])
     bucket_count = calculate_bucket_count(len(data), process_count)
@@ -109,7 +115,7 @@ def parallel_bucket_sort(data, process_count):
             # version without min group size - more optimized
             group_size = group[-1][1] - group[0][0] + 1
 
-            if group_size > MIN_GROUP_SIZE:
+            if should_spawn_for_group(group_size, process_count):
                 process = mp.Process(target=bucket_worker, args=(shm.name, len(arr), dtype, group))
                 process.start()
                 processes.append(process)

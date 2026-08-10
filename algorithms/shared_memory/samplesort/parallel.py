@@ -1,7 +1,7 @@
 import multiprocessing as mp
 
-from .utils import (attach_shared_array, create_shared_array, destroy_shared_memory, split_ranges, select_samples,
-                    choose_pivots, distribute_to_buckets, flatten_buckets, split_bucket_ranges, sort_bucket, should_run_parallel, MIN_GROUP_SIZE)
+from .utils import (attach_shared_array, create_shared_array, destroy_shared_memory, split_ranges, select_samples, choose_pivots,
+                    distribute_to_buckets, flatten_buckets, split_bucket_ranges, sort_bucket, should_run_parallel, get_group_size_cutoff)
 from .sequential import sample_sort
 
 
@@ -97,6 +97,7 @@ def parallel_sample_sort(data, process_count):
         bucket_groups = split_bucket_ranges(bucket_ranges, process_count)
         processes = []
         sequential_groups = []
+        min_group_size = get_group_size_cutoff(process_count) # sx
 
         for group in bucket_groups:
             if not group:
@@ -104,7 +105,8 @@ def parallel_sample_sort(data, process_count):
 
             group_size = group[-1][1] - group[0][0] + 1
 
-            if group_size > MIN_GROUP_SIZE:
+            # if group_size > MIN_GROUP_SIZE:
+            if group_size > min_group_size: # sx
                 process = mp.Process(
                     target=bucket_worker,
                     args=(shm.name, len(arr), dtype, group)

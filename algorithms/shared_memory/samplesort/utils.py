@@ -9,18 +9,57 @@ from algorithms.shared_memory.mergesort.sequential import merge_sort
 
 MIN_SIZE_PER_CORE = 50_000
 MIN_GROUP_SIZE = 5000
-MIN_PROCESSES_FOR_BENEFIT = 4
+
+# {cores: próg}
+PARALLEL_SIZE_CUTOFF = {
+    2: 10_000,
+    4: 10_000,
+    8: 10_000,
+    # 2: 25_000,
+    # 4: 25_000,
+    # 8: 25_000,
+    # 2: 50_000,
+    # 4: 50_000,
+    # 8: 50_000,
+    # 2: 75_000,
+    # 4: 75_000,
+    # 8: 75_000,
+    # 2: 100_000,
+    # 4: 100_000,
+    # 8: 100_000,
+}
+GROUP_SIZE_CUTOFF = {
+    2: 5_000,
+    4: 5_000,
+    8: 5_000,
+}
+
+
+def get_parallel_size_cutoff(process_count):
+    cutoff = PARALLEL_SIZE_CUTOFF.get(process_count)
+
+    if cutoff is None:
+        return MIN_SIZE_PER_CORE
+
+    return cutoff
+
+
+def get_group_size_cutoff(process_count):
+    cutoff = GROUP_SIZE_CUTOFF.get(process_count)
+
+    if cutoff is None:
+        return MIN_GROUP_SIZE
+
+    return cutoff
 
 
 def should_run_parallel(data_size, process_count):
-    if process_count < MIN_PROCESSES_FOR_BENEFIT:
+    if data_size < process_count * get_parallel_size_cutoff(process_count):
         return False
-    if data_size < process_count * MIN_SIZE_PER_CORE:
+    if (data_size // process_count) < get_group_size_cutoff(process_count):
         return False
-    if (data_size // process_count) < MIN_GROUP_SIZE:
-        return False
-    return True
 
+    return True
 
 def get_ctype(dtype):
     if dtype is int:
