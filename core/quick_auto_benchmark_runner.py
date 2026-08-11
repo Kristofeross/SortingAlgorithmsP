@@ -8,10 +8,10 @@ from core.hardware import get_system_info
 from core.results_database import create_system_info_table, save_system_info, create_results_table, save_benchmark_result
 
 TEST_ALGORITHMS = {
-    "1": ALGORITHMS["1"], # Quick Sort
+    # "1": ALGORITHMS["1"], # Quick Sort
     # "2": ALGORITHMS["2"], # Merge Sort
     # "3": ALGORITHMS["3"], # Bucket Sort
-    # "4": ALGORITHMS["4"]  # Sample Sort
+    "4": ALGORITHMS["4"]  # Sample Sort
 }
 TEST_TABLES = {
     "1": DATA_TABLES["1"], # Losowe liczby całkowite
