@@ -276,7 +276,7 @@ def run_single_benchmark(func, args, timeout=DEFAULT_TIMEOUT,
     return result
 
 
-def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", repeat=10, sample_interval=DEFAULT_SAMPLE_INTERVAL,
+def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", repeat=100, sample_interval=DEFAULT_SAMPLE_INTERVAL,
         sequential_time=None, cores=1, timeout=DEFAULT_TIMEOUT, profile_subprocesses=True, profile_dir="profiles"):
 
     times = []
