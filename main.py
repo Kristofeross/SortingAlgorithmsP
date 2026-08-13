@@ -9,8 +9,8 @@ def main():
 
     if mode == "1":
         run_auto_benchmarks()
-    elif mode == "2":
-        run_quick_auto_benchmarks()
+    # elif mode == "2":
+    #     run_quick_auto_benchmarks()
     else:
         print("Niepoprawny wybór")
 

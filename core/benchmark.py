@@ -276,7 +276,7 @@ def run_single_benchmark(func, args, timeout=DEFAULT_TIMEOUT,
     return result
 
 
-def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", repeat=100, sample_interval=DEFAULT_SAMPLE_INTERVAL,
+def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", repeat=10, sample_interval=DEFAULT_SAMPLE_INTERVAL,
         sequential_time=None, cores=1, timeout=DEFAULT_TIMEOUT, profile_subprocesses=True, profile_dir="profiles"):
 
     times = []
@@ -333,19 +333,19 @@ def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", re
         exact_cpu_str = f"{exact_cpu_run:.4f}s" if exact_cpu_run is not None else "N/A (Windows)"
         low_confidence_note = " [UWAGA: mało próbek]" if sample_count_run < 3 else ""
 
-        print(
-            f"Run {run + 1}: "
-            f"CPU avg={avg_cpu_run:.2f}%, "
-            f"RAM avg={avg_mem_run:.2f} MB, "
-            f"RAM max={max_mem_run:.2f} MB, "
-            f"Active time={active_time:.2f}s, "
-            f"Idle time={idle_time:.2f}s, "
-            f"Total time={execution_time:.4f}s, "
-            f"Próbki={sample_count_run}{low_confidence_note}"
-        )
+        # print(
+        #     f"Run {run + 1}: "
+        #     f"CPU avg={avg_cpu_run:.2f}%, "
+        #     f"RAM avg={avg_mem_run:.2f} MB, "
+        #     f"RAM max={max_mem_run:.2f} MB, "
+        #     f"Active time={active_time:.2f}s, "
+        #     f"Idle time={idle_time:.2f}s, "
+        #     f"Total time={execution_time:.4f}s, "
+        #     f"Próbki={sample_count_run}{low_confidence_note}"
+        # )
 
         if run == 0:
-            print("Pierwsze uruchomienie pominięte\n")
+            # print("Pierwsze uruchomienie pominięte\n")
             profile_output = run_data["profile"]
             continue
 
@@ -397,28 +397,29 @@ def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", re
         if cores > 0:
             efficiency = speedup / cores
 
-    print(f"\n--- {label} ---")
-    print(f"Status: {status}")
-    print(f"Środowisko: {'resource dostępne (Linux/macOS)' if HAS_RESOURCE else 'resource niedostępne (Windows) - brak dokładnego CPU'}")
-    print(f"Średni czas wykonania: {avg_time:.6f} s")
-    print(f"Mediana czasu wykonania: {median_time:.6f} s")
-    print(f"Odchylenie standardowe: {std_time:.6f} s")
-    print(f"Średnie obciążenie CPU (próbkowane): {avg_cpu:.2f}%")
-    if avg_exact_cpu_time is not None:
-        print(f"Średni dokładny czas CPU (getrusage): {avg_exact_cpu_time:.4f} s")
-    print(f"Średnie użycie RAM: {avg_mem:.2f} MB")
-    print(f"Maksymalne użycie RAM: {max_mem:.2f} MB")
-    if min_sample_count is not None and min_sample_count < 3:
-        print(f"UWAGA: minimalna liczba próbek w przebiegach = {min_sample_count} - statystyki CPU/RAM mogą być niewiarygodne dla tego przypadku")
+    # print(f"\n--- {label} ---")
+    # print(f"Status: {status}")
+    # print(f"Środowisko: {'resource dostępne (Linux/macOS)' if HAS_RESOURCE else 'resource niedostępne (Windows) - brak dokładnego CPU'}")
+    # print(f"Średni czas wykonania: {avg_time:.6f} s")
+    # print(f"Mediana czasu wykonania: {median_time:.6f} s")
+    # print(f"Odchylenie standardowe: {std_time:.6f} s")
+    # print(f"Średnie obciążenie CPU (próbkowane): {avg_cpu:.2f}%")
+    # if avg_exact_cpu_time is not None:
+    #     print(f"Średni dokładny czas CPU (getrusage): {avg_exact_cpu_time:.4f} s")
+    # print(f"Średnie użycie RAM: {avg_mem:.2f} MB")
+    # print(f"Maksymalne użycie RAM: {max_mem:.2f} MB")
+    # if min_sample_count is not None and min_sample_count < 3:
+    #     print(f"UWAGA: minimalna liczba próbek w przebiegach = {min_sample_count} - statystyki CPU/RAM mogą być niewiarygodne dla tego przypadku")
+    #
+    # if error_message is not None:
+    #     print(f"Błąd: {error_message}")
+    # if speedup is not None:
+    #     print(f"Speedup: {speedup:.4f}")
+    # if efficiency is not None:
+    #     print(f"Efficiency: {efficiency:.4f}")
 
-    if error_message is not None:
-        print(f"Błąd: {error_message}")
-    if speedup is not None:
-        print(f"Speedup: {speedup:.4f}")
-    if efficiency is not None:
-        print(f"Efficiency: {efficiency:.4f}")
-    print("\n--- cProfile ---")
-    print(profile_output)
+    # print("\n--- cProfile ---")
+    # print(profile_output)
 
     return {
         "avg_time": avg_time,
