@@ -11,7 +11,7 @@ import subprocess
 import shutil
 import platform
 
-from core.monitoring import measure_usage, get_exact_children_cpu_time, HAS_RESOURCE # 2 nowe importy
+from core.monitoring import measure_usage, get_exact_children_cpu_time, HAS_RESOURCE
 
 
 DEFAULT_TIMEOUT = 900
@@ -276,7 +276,7 @@ def run_single_benchmark(func, args, timeout=DEFAULT_TIMEOUT,
     return result
 
 
-def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", repeat=2, sample_interval=DEFAULT_SAMPLE_INTERVAL,
+def profile_function(func, *args, label="Profilowanie", sort_by="cumulative", repeat=10, sample_interval=DEFAULT_SAMPLE_INTERVAL,
         sequential_time=None, cores=1, timeout=DEFAULT_TIMEOUT, profile_subprocesses=True, profile_dir="profiles"):
 
     times = []
