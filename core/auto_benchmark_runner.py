@@ -10,13 +10,13 @@ from core.results_database import create_results_table, create_system_info_table
 
 USE_LOGICAL_CORES = True
 
-# sx
+
 def get_sample_interval(data_size):
     if data_size <= 10_000:
         return 0.01
 
     return 0.05
-# ex
+
 
 def run_auto_benchmarks():
     create_results_table()

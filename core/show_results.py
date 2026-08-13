@@ -3,8 +3,8 @@ from core.results_database import (show_system_info, show_results, show_problem_
 
 
 if __name__ == "__main__":
-    show_system_info()
-    # show_results(limit=50)
+    # show_system_info()
+    show_results(limit=50)
     # show_dataset_results("random_int")
     # clear_results()
     # show_algorithm_summary()

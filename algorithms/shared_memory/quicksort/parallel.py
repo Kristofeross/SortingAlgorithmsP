@@ -31,7 +31,6 @@ def parallel_quicksort_recursive(arr, shm_name, length, dtype, low, high, depth,
 
     processes = []
 
-
     for part in [left, right]:
         p_low, p_high = part
 
@@ -44,18 +43,8 @@ def parallel_quicksort_recursive(arr, shm_name, length, dtype, low, high, depth,
         if part_size > min_size:
             p = mp.Process(
                 target=parallel_quicksort_worker,
-                args=(
-                    shm_name,
-                    length,
-                    dtype,
-                    p_low,
-                    p_high,
-                    depth + 1,
-                    max_depth,
-                    min_size
-                )
+                args=(shm_name, length, dtype, p_low, p_high, depth + 1, max_depth, min_size)
             )
-
             p.start()
             processes.append(p)
         else:

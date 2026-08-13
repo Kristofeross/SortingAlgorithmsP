@@ -97,7 +97,7 @@ def parallel_sample_sort(data, process_count):
         bucket_groups = split_bucket_ranges(bucket_ranges, process_count)
         processes = []
         sequential_groups = []
-        min_group_size = get_group_size_cutoff(process_count) # sx
+        min_group_size = get_group_size_cutoff(process_count)
 
         for group in bucket_groups:
             if not group:
@@ -105,8 +105,7 @@ def parallel_sample_sort(data, process_count):
 
             group_size = group[-1][1] - group[0][0] + 1
 
-            # if group_size > MIN_GROUP_SIZE:
-            if group_size > min_group_size: # sx
+            if group_size > min_group_size:
                 process = mp.Process(
                     target=bucket_worker,
                     args=(shm.name, len(arr), dtype, group)
