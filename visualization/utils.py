@@ -40,6 +40,11 @@ from visualization.config import (
     RANKING_DIR,
     COMPLEXITY_DIR,
 
+    SUMMARY_TABLE_DIR,
+    SCALABILITY_TABLE_DIR,
+    RESOURCES_TABLE_DIR,
+    DATASETS_TABLE_DIR,
+
     EXPORT_FORMATS,
     FIGURE_SIZE,
     DPI,
@@ -94,6 +99,11 @@ def create_results_directories() -> None:
         HEATMAPS_DIR,
         RANKING_DIR,
         COMPLEXITY_DIR,
+
+        SUMMARY_TABLE_DIR,
+        SCALABILITY_TABLE_DIR,
+        RESOURCES_TABLE_DIR,
+        DATASETS_TABLE_DIR,
     ]
 
     for directory in directories:
