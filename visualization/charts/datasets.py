@@ -9,7 +9,7 @@ from visualization.utils import create_figure, finish_plot
 from visualization.filters import filter_algorithm, filter_dataset, filter_parallel
 
 
-def _resolve_data_size(df, preferred: int) -> int | None:
+def resolve_data_size(df, preferred: int) -> int | None:
     available = get_data_sizes()
 
     if not available:
@@ -24,7 +24,7 @@ def _resolve_data_size(df, preferred: int) -> int | None:
 def plot_dataset_impact(df, data_size: int = DEFAULT_DATA_SIZE, cores: int = DEFAULT_CORES):
     print("Generowanie: Dataset Impact")
 
-    resolved_size = _resolve_data_size(df, data_size)
+    resolved_size = resolve_data_size(df, data_size)
 
     if resolved_size is None:
         print("  Brak danych, pomijam.")
@@ -90,7 +90,7 @@ def plot_dataset_impact(df, data_size: int = DEFAULT_DATA_SIZE, cores: int = DEF
 def plot_sortedness_impact(df, data_size: int = DEFAULT_DATA_SIZE, cores: int = DEFAULT_CORES):
     print("Generowanie: Sortedness Impact")
 
-    resolved_size = _resolve_data_size(df, data_size)
+    resolved_size = resolve_data_size(df, data_size)
 
     if resolved_size is None:
         print("  Brak danych, pomijam.")
