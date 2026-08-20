@@ -7,9 +7,24 @@ from visualization.config import (
 from visualization.loader import load_all, get_algorithms, get_data_sizes, get_datasets
 from visualization.utils import create_figure, finish_plot
 from visualization.style import use_log_scale_x, use_log_scale_y, set_clean_ticks, format_log_axis_plain
-from visualization.filters import filter_algorithm, filter_dataset, filter_parallel, filter_sequential, sort_by_data_size
+from visualization.filters import (
+    filter_algorithm, filter_dataset, filter_parallel, filter_sequential, sort_by_data_size,
+)
 
 
+# -----------------------------------------------------------------------
+# WYKRESY GŁÓWNE
+#
+# Te wykresy mają odpowiedzieć na podstawowe pytania badawcze (czas vs
+# rozmiar, czas vs rdzenie, sequential vs parallel, ranking algorytmów).
+# Nie porównują charakteru danych wejściowych - do tego służy osobny
+# moduł charts/datasets.py. Dlatego wszystkie poniższe funkcje operują
+# tylko na jednym, reprezentatywnym zbiorze danych: DEFAULT_DATASET.
+# Dzięki temu z 4 funkcji powstają 4 pliki, a nie 4 x liczba zbiorów danych.
+# -----------------------------------------------------------------------
+
+
+# Wykres: czas wykonania względem rozmiaru danych
 def plot_execution_time_vs_data_size(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Execution Time vs Data Size")
 
@@ -57,6 +72,7 @@ def plot_execution_time_vs_data_size(df, dataset: str = DEFAULT_DATASET):
     finish_plot(fig, ax, EXECUTION_TIME_VS_DATA_SIZE_DIR, filename, subfolder=dataset)
 
 
+# Wykres: czas wykonania względem liczby rdzeni
 def plot_execution_time_vs_cores(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Execution Time vs Cores")
 
@@ -112,6 +128,9 @@ def plot_execution_time_vs_cores(df, dataset: str = DEFAULT_DATASET):
     finish_plot(fig, ax, EXECUTION_TIME_VS_CORES_DIR, filename, subfolder=dataset)
 
 
+# Wykres: Sequential vs Parallel (jeden plik na algorytm - to jedyny
+# wykres w tym module, który celowo generuje więcej niż 1 plik, bo
+# porównuje coś w obrębie jednego algorytmu, nie między zbiorami danych)
 def plot_sequential_vs_parallel(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Sequential vs Parallel")
 
@@ -176,29 +195,35 @@ def plot_sequential_vs_parallel(df, dataset: str = DEFAULT_DATASET):
         finish_plot(fig, ax, EXECUTION_TIME_SEQUENTIAL_VS_PARALLEL_DIR, filename, subfolder=dataset)
 
 
+# Wykres: ranking końcowy algorytmów (porównanie) dla KAŻDEJ
+# kombinacji (rozmiar danych, liczba rdzeni) obecnej w bazie - nie
+# tylko dla maksymalnej liczby rdzeni per rozmiar. Każda kombinacja
+# ląduje w podfolderze {dataset}/{rozmiar}/, żeby dało się to
+# sensownie przeglądać mimo dużej liczby plików.
 def plot_algorithm_comparison(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Algorithm Comparison")
 
-    data_sizes = sorted(get_data_sizes())
-
-    if not data_sizes:
-        return
-
     dataset_df = filter_dataset(df, dataset)
+    dataset_df = filter_parallel(dataset_df)
     dataset_label = DATASET_LABELS.get(dataset, dataset)
 
-    for size in data_sizes:
-        size_df = dataset_df[dataset_df["data_size"] == size]
-        size_df = filter_parallel(size_df)
+    if dataset_df.empty:
+        return
 
-        if size_df.empty:
-            continue
+    combos = (
+        dataset_df[["data_size", "cores"]]
+        .drop_duplicates()
+        .sort_values(["data_size", "cores"])
+        .itertuples(index=False)
+    )
 
-        max_cores = size_df["cores"].max()
-        size_df = size_df[size_df["cores"] == max_cores]
+    for size, cores in combos:
+        combo_df = dataset_df[
+            (dataset_df["data_size"] == size) & (dataset_df["cores"] == cores)
+        ]
 
         comparison_df = (
-            size_df
+            combo_df
             .groupby("algorithm", as_index=False)
             ["avg_time"]
             .mean()
@@ -223,15 +248,18 @@ def plot_algorithm_comparison(df, dataset: str = DEFAULT_DATASET):
 
         ax.set_title(
             f"Porównanie algorytmów (ranking)\n"
-            f"{dataset_label}, {size:,} elementów, {max_cores} rdzeni"
+            f"{dataset_label}, {size:,} elementów, {cores} rdzeni"
         )
         ax.set_xlabel("Algorytm")
         ax.set_ylabel("Czas wykonania [s]")
         ax.tick_params(axis="x", rotation=20)
 
-        filename = f"algorithm_comparison_{dataset}_{size}"
+        filename = f"algorithm_comparison_{dataset}_{size}_{cores}cores"
 
-        finish_plot(fig, ax, EXECUTION_TIME_ALGORITHM_COMPARISON_DIR, filename, subfolder=dataset)
+        finish_plot(
+            fig, ax, EXECUTION_TIME_ALGORITHM_COMPARISON_DIR, filename,
+            subfolder=f"{dataset}/{size}",
+        )
 
 
 def generate_all_execution_time_charts() -> None:

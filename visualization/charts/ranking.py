@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from visualization.config import DATASET_LABELS, DEFAULT_DATASET, DEFAULT_DATA_SIZE, DEFAULT_CORES, RANKING_DIR
+from visualization.config import DATASET_LABELS, DEFAULT_DATASET, DEFAULT_DATA_SIZE, DEFAULT_CORES,  RANKING_DIR
 from visualization.loader import load_all, get_algorithms, get_data_sizes, get_datasets
 from visualization.utils import ensure_directory, save_plot, close_plot
 from visualization.filters import filter_dataset, filter_parallel
@@ -130,7 +130,7 @@ def plot_multi_metric_ranking(
     filename = f"multi_metric_ranking_{dataset}_{resolved_size}_{cores}cores"
 
     ensure_directory(RANKING_DIR)
-    save_plot(fig, RANKING_DIR, filename, subfolder=dataset)
+    save_plot(fig, RANKING_DIR, filename, subfolder=f"{dataset}/{resolved_size}")
     close_plot(fig)
 
 
@@ -144,8 +144,23 @@ def generate_all_ranking_charts() -> None:
         print("Brak danych w bazie.")
         return
 
+    parallel_df = filter_parallel(df)
+
     for dataset in get_datasets():
-        plot_multi_metric_ranking(df, dataset=dataset)
+        dataset_df = filter_dataset(parallel_df, dataset)
+
+        if dataset_df.empty:
+            continue
+
+        combos = (
+            dataset_df[["data_size", "cores"]]
+            .drop_duplicates()
+            .sort_values(["data_size", "cores"])
+            .itertuples(index=False)
+        )
+
+        for size, cores in combos:
+            plot_multi_metric_ranking(df, dataset=dataset, data_size=size, cores=cores)
 
     print()
     print(">>> Zakończono generowanie zbiorczego rankingu")

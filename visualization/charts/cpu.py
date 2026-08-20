@@ -197,26 +197,27 @@ def plot_cpu_vs_data_size(df, dataset: str = DEFAULT_DATASET):
 def plot_cpu_comparison(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: CPU Comparison (ranking)")
 
-    data_sizes = sorted(get_data_sizes())
-
-    if not data_sizes:
-        return
-
     dataset_df = filter_dataset(df, dataset)
+    dataset_df = filter_parallel(dataset_df)
     dataset_label = DATASET_LABELS.get(dataset, dataset)
 
-    for size in data_sizes:
-        size_df = dataset_df[dataset_df["data_size"] == size]
-        size_df = filter_parallel(size_df)
+    if dataset_df.empty:
+        return
 
-        if size_df.empty:
-            continue
+    combos = (
+        dataset_df[["data_size", "cores"]]
+        .drop_duplicates()
+        .sort_values(["data_size", "cores"])
+        .itertuples(index=False)
+    )
 
-        max_cores = size_df["cores"].max()
-        size_df = size_df[size_df["cores"] == max_cores]
+    for size, cores in combos:
+        combo_df = dataset_df[
+            (dataset_df["data_size"] == size) & (dataset_df["cores"] == cores)
+        ]
 
         comparison_df = (
-            size_df
+            combo_df
             .groupby("algorithm", as_index=False)
             ["avg_cpu"]
             .mean()
@@ -229,7 +230,7 @@ def plot_cpu_comparison(df, dataset: str = DEFAULT_DATASET):
         fig, ax = create_figure()
 
         ax.axhline(
-            y=max_cores * 100,
+            y=cores * 100,
             linestyle="--",
             color="gray",
             linewidth=1.5,
@@ -248,15 +249,18 @@ def plot_cpu_comparison(df, dataset: str = DEFAULT_DATASET):
 
         ax.set_title(
             f"Ranking algorytmów wg wykorzystania CPU\n"
-            f"{dataset_label}, {size:,} elementów, {max_cores} rdzeni"
+            f"{dataset_label}, {size:,} elementów, {cores} rdzeni"
         )
         ax.set_xlabel("Algorytm")
         ax.set_ylabel("Średnie użycie CPU [%]")
         ax.tick_params(axis="x", rotation=20)
 
-        filename = f"cpu_comparison_{dataset}_{size}"
+        filename = f"cpu_comparison_{dataset}_{size}_{cores}cores"
 
-        finish_plot(fig, ax, CPU_COMPARISON_DIR, filename, subfolder=dataset)
+        finish_plot(
+            fig, ax, CPU_COMPARISON_DIR, filename,
+            subfolder=f"{dataset}/{size}",
+        )
 
 
 def generate_all_cpu_charts() -> None:

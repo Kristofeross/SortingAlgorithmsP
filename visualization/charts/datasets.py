@@ -1,17 +1,14 @@
 import numpy as np
 
 from visualization.config import (
-    ALGORITHM_COLORS, DATASET_LABELS,
-    DATASET_IMPACT_SETS, SORTEDNESS_SETS,
-    DEFAULT_DATA_SIZE, DEFAULT_CORES,
-    DATASETS_IMPACT_DIR, DATASETS_SORTEDNESS_DIR,
+    ALGORITHM_COLORS, DATASET_LABELS, DATASET_IMPACT_SETS, SORTEDNESS_SETS,
+    DEFAULT_DATA_SIZE, DEFAULT_CORES, DATASETS_IMPACT_DIR, DATASETS_SORTEDNESS_DIR,
 )
 from visualization.loader import load_all, get_algorithms, get_data_sizes
 from visualization.utils import create_figure, finish_plot
 from visualization.filters import filter_algorithm, filter_dataset, filter_parallel
 
 
-# Charts: influence of input data nature
 def _resolve_data_size(df, preferred: int) -> int | None:
     available = get_data_sizes()
 
@@ -24,7 +21,6 @@ def _resolve_data_size(df, preferred: int) -> int | None:
     return max(available)
 
 
-# Chart: Impact of data type (random/duplicate, int/float)
 def plot_dataset_impact(df, data_size: int = DEFAULT_DATA_SIZE, cores: int = DEFAULT_CORES):
     print("Generowanie: Dataset Impact")
 
@@ -39,7 +35,7 @@ def plot_dataset_impact(df, data_size: int = DEFAULT_DATA_SIZE, cores: int = DEF
     datasets = [d for d in DATASET_IMPACT_SETS if not filter_dataset(df, d).empty]
 
     if not datasets:
-        print("Brak zbiorów z DATASET_IMPACT_SETS w bazie, pomijam.")
+        print("  Brak zbiorów z DATASET_IMPACT_SETS w bazie, pomijam.")
         return
 
     subset_df = df[df["data_size"] == resolved_size]
@@ -48,7 +44,7 @@ def plot_dataset_impact(df, data_size: int = DEFAULT_DATA_SIZE, cores: int = DEF
     subset_df = subset_df[subset_df["cores"] == cores]
 
     if subset_df.empty:
-        print(f"Brak danych dla rozmiaru={resolved_size}, rdzeni={cores}, pomijam.")
+        print(f"  Brak danych dla rozmiaru={resolved_size}, rdzeni={cores}, pomijam.")
         return
 
     fig, ax = create_figure()
@@ -88,10 +84,9 @@ def plot_dataset_impact(df, data_size: int = DEFAULT_DATA_SIZE, cores: int = DEF
 
     filename = f"dataset_impact_{resolved_size}_{cores}cores"
 
-    finish_plot(fig, ax, DATASETS_IMPACT_DIR, filename)
+    finish_plot(fig, ax, DATASETS_IMPACT_DIR, filename, subfolder=str(resolved_size))
 
 
-# Chart: Impact of input sorting (0/20/40/60/80%) on execution time - separate graphs for int and float
 def plot_sortedness_impact(df, data_size: int = DEFAULT_DATA_SIZE, cores: int = DEFAULT_CORES):
     print("Generowanie: Sortedness Impact")
 
@@ -163,7 +158,23 @@ def plot_sortedness_impact(df, data_size: int = DEFAULT_DATA_SIZE, cores: int = 
 
         filename = f"sortedness_impact_{data_type}_{resolved_size}_{cores}cores"
 
-        finish_plot(fig, ax, DATASETS_SORTEDNESS_DIR, filename)
+        finish_plot(fig, ax, DATASETS_SORTEDNESS_DIR, filename, subfolder=str(resolved_size))
+
+
+def get_combos(df, relevant_datasets: list[str]):
+    subset = df[df["dataset"].isin(relevant_datasets)]
+    subset = filter_parallel(subset)
+
+    if subset.empty:
+        return []
+
+    combos = (
+        subset[["data_size", "cores"]]
+        .drop_duplicates()
+        .sort_values(["data_size", "cores"])
+    )
+
+    return list(combos.itertuples(index=False))
 
 
 def generate_all_dataset_charts() -> None:
@@ -176,15 +187,23 @@ def generate_all_dataset_charts() -> None:
         print("Brak danych w bazie.")
         return
 
-    charts = [
-        ("Dataset Impact", plot_dataset_impact),
-        ("Sortedness Impact", plot_sortedness_impact),
+    print()
+    print("--- Dataset Impact ---")
+
+    for size, cores in get_combos(df, DATASET_IMPACT_SETS):
+        plot_dataset_impact(df, data_size=size, cores=cores)
+
+    print()
+    print("--- Sortedness Impact ---")
+
+    sortedness_datasets = [
+        name
+        for sets in SORTEDNESS_SETS.values()
+        for _, name in sets
     ]
 
-    for name, function in charts:
-        print()
-        print(f"--- {name} ---")
-        function(df)
+    for size, cores in get_combos(df, sortedness_datasets):
+        plot_sortedness_impact(df, data_size=size, cores=cores)
 
     print()
     print(">>> Zakończono generowanie wykresów wpływu danych wejściowych")
