@@ -38,6 +38,7 @@ from visualization.config import (
     DATASETS_SORTEDNESS_DIR,
     HEATMAPS_DIR,
     RANKING_DIR,
+    COMPLEXITY_DIR,
 
     EXPORT_FORMATS,
     FIGURE_SIZE,
@@ -92,6 +93,7 @@ def create_results_directories() -> None:
         DATASETS_SORTEDNESS_DIR,
         HEATMAPS_DIR,
         RANKING_DIR,
+        COMPLEXITY_DIR,
     ]
 
     for directory in directories:
@@ -107,8 +109,12 @@ def get_distinct_colors(n: int):
     return [cmap(i / max(n - 1, 1)) for i in range(n)]
 
 
-def save_plot(fig, directory: Path, filename: str,) -> None:
+def save_plot(fig, directory: Path, filename: str, subfolder: str = None) -> None:
     output_directory = Path(directory)
+
+    if subfolder:
+        output_directory = output_directory / subfolder
+
     ensure_directory(output_directory)
 
     for extension in EXPORT_FORMATS:
@@ -123,7 +129,7 @@ def close_plot(fig) -> None:
     plt.close(fig)
 
 
-def finish_plot(fig, ax, directory: Path, filename: str,) -> None:
+def finish_plot(fig, ax, directory: Path, filename: str, subfolder: str = None) -> None:
     apply_plot_style(ax)
-    save_plot(fig=fig, directory=directory, filename=filename,)
+    save_plot(fig=fig, directory=directory, filename=filename, subfolder=subfolder)
     close_plot(fig)

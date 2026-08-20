@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import math
 
 from visualization.config import (
     GRID_ALPHA,
@@ -83,7 +84,9 @@ def plain_log_tick_label(value, _pos=None) -> str:
     if value >= 1:
         return f"{value:g}"
 
-    return f"{value:g}"
+    exponent = math.floor(math.log10(abs(value)))
+    decimals = max(-exponent, 0)
+    return f"{value:.{decimals}f}"
 
 
 def format_log_axis_plain(ax, axis: str = "y") -> None:

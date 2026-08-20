@@ -2,7 +2,7 @@ from visualization.config import (
     ALGORITHM_COLORS, ALGORITHM_MARKERS, DATASET_LABELS, DEFAULT_DATASET,
     EFFICIENCY_VS_DATA_SIZE_DIR, EFFICIENCY_VS_CORES_DIR, EFFICIENCY_COMPARISON_DIR,
 )
-from visualization.loader import load_all, get_algorithms, get_data_sizes
+from visualization.loader import load_all, get_algorithms, get_data_sizes, get_datasets
 from visualization.utils import create_figure, finish_plot, get_distinct_colors
 from visualization.style import use_log_scale_x, set_clean_ticks
 from visualization.filters import filter_algorithm, filter_dataset, filter_parallel
@@ -19,9 +19,8 @@ def plot_ideal_efficiency_line(ax) -> None:
     )
 
 
-# Chart: efficiency vs number of cores, separate file per algorithm
 def plot_efficiency_vs_cores_per_algorithm(df, dataset: str = DEFAULT_DATASET):
-    print("Generowanie: Efficiency vs Cores (na 1 algorytm)")
+    print("Generowanie: Efficiency vs Cores (per algorytm)")
 
     algorithms = get_algorithms()
     data_sizes = sorted(get_data_sizes())
@@ -30,7 +29,7 @@ def plot_efficiency_vs_cores_per_algorithm(df, dataset: str = DEFAULT_DATASET):
     dataset_df = filter_parallel(dataset_df)
 
     if dataset_df.empty:
-        print(f"Brak danych dla zbioru '{dataset}', pomijam.")
+        print(f"  Brak danych dla zbioru '{dataset}', pomijam.")
         return
 
     dataset_label = DATASET_LABELS.get(dataset, dataset)
@@ -74,10 +73,9 @@ def plot_efficiency_vs_cores_per_algorithm(df, dataset: str = DEFAULT_DATASET):
 
         filename = algorithm.lower().replace(" ", "_") + "_efficiency_vs_cores_" + dataset
 
-        finish_plot(fig, ax, EFFICIENCY_VS_CORES_DIR, filename)
+        finish_plot(fig, ax, EFFICIENCY_VS_CORES_DIR, filename, subfolder=dataset)
 
 
-# Chart: efficiency vs number of cores
 def plot_efficiency_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Efficiency vs Cores (porównanie algorytmów)")
 
@@ -94,7 +92,7 @@ def plot_efficiency_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
     dataset_df = filter_parallel(dataset_df)
 
     if dataset_df.empty:
-        print(f"Brak danych dla zbioru '{dataset}', pomijam.")
+        print(f"  Brak danych dla zbioru '{dataset}', pomijam.")
         return
 
     dataset_label = DATASET_LABELS.get(dataset, dataset)
@@ -130,11 +128,9 @@ def plot_efficiency_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
 
     filename = "efficiency_vs_cores_comparison_" + dataset
 
-    finish_plot(fig, ax, EFFICIENCY_VS_CORES_DIR, filename)
+    finish_plot(fig, ax, EFFICIENCY_VS_CORES_DIR, filename, subfolder=dataset)
 
 
-# -----------------------------------------------------------------------
-# Chart: efficiency vs data size
 def plot_efficiency_vs_data_size(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Efficiency vs Data Size")
 
@@ -183,12 +179,9 @@ def plot_efficiency_vs_data_size(df, dataset: str = DEFAULT_DATASET):
 
     filename = "efficiency_vs_data_size_" + dataset
 
-    finish_plot(fig, ax, EFFICIENCY_VS_DATA_SIZE_DIR, filename)
+    finish_plot(fig, ax, EFFICIENCY_VS_DATA_SIZE_DIR, filename, subfolder=dataset)
 
 
-# -----------------------------------------------------------------------
-# Chart: ranking of algorithms by efficiency, for each data size
-# -----------------------------------------------------------------------
 def plot_efficiency_comparison(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Efficiency Comparison (ranking)")
 
@@ -246,7 +239,7 @@ def plot_efficiency_comparison(df, dataset: str = DEFAULT_DATASET):
 
         filename = f"efficiency_comparison_{dataset}_{size}"
 
-        finish_plot(fig, ax, EFFICIENCY_COMPARISON_DIR, filename)
+        finish_plot(fig, ax, EFFICIENCY_COMPARISON_DIR, filename, subfolder=dataset)
 
 
 def generate_all_efficiency_charts() -> None:
@@ -266,10 +259,14 @@ def generate_all_efficiency_charts() -> None:
         ("Efficiency Comparison (ranking)", plot_efficiency_comparison),
     ]
 
+    datasets = get_datasets()
+
     for name, function in charts:
         print()
         print(f"--- {name} ---")
-        function(df)
+
+        for dataset in datasets:
+            function(df, dataset=dataset)
 
     print()
     print(">>> Zakończono generowanie wykresów efficiency")

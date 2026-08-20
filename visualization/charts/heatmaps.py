@@ -2,13 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 
-from visualization.config import  DATASET_LABELS, DEFAULT_DATASET, HEATMAPS_DIR
-from visualization.loader import load_all, get_algorithms, get_data_sizes, get_cores
+from visualization.config import DATASET_LABELS, DEFAULT_DATASET, HEATMAPS_DIR
+from visualization.loader import load_all, get_algorithms, get_data_sizes, get_cores, get_datasets
 from visualization.utils import ensure_directory, save_plot, close_plot
 from visualization.filters import filter_algorithm, filter_dataset
+from visualization.style import format_log_axis_plain
 
 
-# Chart: runtime heatmap (data size x number of cores), separate file per algorithm.
 def plot_execution_time_heatmap(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Execution Time Heatmap")
 
@@ -19,7 +19,7 @@ def plot_execution_time_heatmap(df, dataset: str = DEFAULT_DATASET):
     dataset_df = filter_dataset(df, dataset)
 
     if dataset_df.empty:
-        print(f"Brak danych dla zbioru '{dataset}', pomijam.")
+        print(f"  Brak danych dla zbioru '{dataset}', pomijam.")
         return
 
     dataset_label = DATASET_LABELS.get(dataset, dataset)
@@ -81,12 +81,13 @@ def plot_execution_time_heatmap(df, dataset: str = DEFAULT_DATASET):
                     color=text_color, fontsize=10,
                 )
 
-        fig.colorbar(im, ax=ax, label="Czas wykonania [s] (skala log)")
+        cbar = fig.colorbar(im, ax=ax, label="Czas wykonania [s] (skala log)")
+        format_log_axis_plain(cbar.ax, axis="y")
 
         filename = algorithm.lower().replace(" ", "_") + "_heatmap_" + dataset
 
         ensure_directory(HEATMAPS_DIR)
-        save_plot(fig, HEATMAPS_DIR, filename)
+        save_plot(fig, HEATMAPS_DIR, filename, subfolder=dataset)
         close_plot(fig)
 
 
@@ -100,7 +101,8 @@ def generate_all_heatmap_charts() -> None:
         print("Brak danych w bazie.")
         return
 
-    plot_execution_time_heatmap(df)
+    for dataset in get_datasets():
+        plot_execution_time_heatmap(df, dataset=dataset)
 
     print()
     print(">>> Zakończono generowanie heatmap")

@@ -1,14 +1,15 @@
 from visualization.config import (
-    ALGORITHM_COLORS, ALGORITHM_MARKERS, DATASET_LABELS, DEFAULT_DATASET, EXECUTION_TIME_VS_DATA_SIZE_DIR,
-    EXECUTION_TIME_VS_CORES_DIR, EXECUTION_TIME_SEQUENTIAL_VS_PARALLEL_DIR, EXECUTION_TIME_ALGORITHM_COMPARISON_DIR,
+    ALGORITHM_COLORS, ALGORITHM_MARKERS, DATASET_LABELS,
+    DEFAULT_DATASET,
+    EXECUTION_TIME_VS_DATA_SIZE_DIR, EXECUTION_TIME_VS_CORES_DIR,
+    EXECUTION_TIME_SEQUENTIAL_VS_PARALLEL_DIR, EXECUTION_TIME_ALGORITHM_COMPARISON_DIR,
 )
-from visualization.loader import load_all, get_algorithms, get_data_sizes
+from visualization.loader import load_all, get_algorithms, get_data_sizes, get_datasets
 from visualization.utils import create_figure, finish_plot
 from visualization.style import use_log_scale_x, use_log_scale_y, set_clean_ticks, format_log_axis_plain
 from visualization.filters import filter_algorithm, filter_dataset, filter_parallel, filter_sequential, sort_by_data_size
 
 
-# Chart: execution time relative to data size
 def plot_execution_time_vs_data_size(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Execution Time vs Data Size")
 
@@ -18,7 +19,7 @@ def plot_execution_time_vs_data_size(df, dataset: str = DEFAULT_DATASET):
     dataset_df = filter_parallel(dataset_df)
 
     if dataset_df.empty:
-        print(f"Brak danych dla zbioru '{dataset}', pomijam.")
+        print(f"  Brak danych dla zbioru '{dataset}', pomijam.")
         return
 
     fig, ax = create_figure()
@@ -53,10 +54,9 @@ def plot_execution_time_vs_data_size(df, dataset: str = DEFAULT_DATASET):
 
     filename = "execution_time_vs_data_size_" + dataset
 
-    finish_plot(fig, ax, EXECUTION_TIME_VS_DATA_SIZE_DIR, filename)
+    finish_plot(fig, ax, EXECUTION_TIME_VS_DATA_SIZE_DIR, filename, subfolder=dataset)
 
 
-# Chart: execution time relative to the number of cores
 def plot_execution_time_vs_cores(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Execution Time vs Cores")
 
@@ -109,10 +109,9 @@ def plot_execution_time_vs_cores(df, dataset: str = DEFAULT_DATASET):
 
     filename = "execution_time_vs_cores_" + dataset
 
-    finish_plot(fig, ax, EXECUTION_TIME_VS_CORES_DIR, filename)
+    finish_plot(fig, ax, EXECUTION_TIME_VS_CORES_DIR, filename, subfolder=dataset)
 
 
-# Chart: Sequential vs Parallel
 def plot_sequential_vs_parallel(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Sequential vs Parallel")
 
@@ -120,7 +119,7 @@ def plot_sequential_vs_parallel(df, dataset: str = DEFAULT_DATASET):
     dataset_df = filter_dataset(df, dataset)
 
     if dataset_df.empty:
-        print(f"Brak danych dla zbioru '{dataset}', pomijam.")
+        print(f"  Brak danych dla zbioru '{dataset}', pomijam.")
         return
 
     dataset_label = DATASET_LABELS.get(dataset, dataset)
@@ -174,10 +173,9 @@ def plot_sequential_vs_parallel(df, dataset: str = DEFAULT_DATASET):
 
         filename = algorithm.lower().replace(" ", "_") + "_sequential_vs_parallel_" + dataset
 
-        finish_plot(fig, ax, EXECUTION_TIME_SEQUENTIAL_VS_PARALLEL_DIR, filename)
+        finish_plot(fig, ax, EXECUTION_TIME_SEQUENTIAL_VS_PARALLEL_DIR, filename, subfolder=dataset)
 
 
-# Chart: final ranking of algorithms (comparison) for each data size present in the database
 def plot_algorithm_comparison(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Algorithm Comparison")
 
@@ -233,7 +231,7 @@ def plot_algorithm_comparison(df, dataset: str = DEFAULT_DATASET):
 
         filename = f"algorithm_comparison_{dataset}_{size}"
 
-        finish_plot(fig, ax, EXECUTION_TIME_ALGORITHM_COMPARISON_DIR, filename)
+        finish_plot(fig, ax, EXECUTION_TIME_ALGORITHM_COMPARISON_DIR, filename, subfolder=dataset)
 
 
 def generate_all_execution_time_charts() -> None:
@@ -246,6 +244,8 @@ def generate_all_execution_time_charts() -> None:
         print("Brak danych w bazie.")
         return
 
+    datasets = get_datasets()
+
     charts = [
         ("Execution Time vs Data Size", plot_execution_time_vs_data_size),
         ("Execution Time vs Cores", plot_execution_time_vs_cores),
@@ -256,7 +256,9 @@ def generate_all_execution_time_charts() -> None:
     for name, function in charts:
         print()
         print(f"--- {name} ---")
-        function(df)
+
+        for dataset in datasets:
+            function(df, dataset=dataset)
 
     print()
     print(">>> Zakończono generowanie wykresów czasu wykonania")

@@ -55,11 +55,7 @@ def load_results(
     """
 
     with get_connection() as connection:
-        return pd.read_sql_query(
-            query,
-            connection,
-            params=parameters,
-        )
+        return pd.read_sql_query(query, connection, params=parameters)
 
 
 def load_all() -> pd.DataFrame:
@@ -68,10 +64,7 @@ def load_all() -> pd.DataFrame:
 
 def get_distinct_values(column: str) -> list:
     query = f"""
-        SELECT DISTINCT {column}
-        FROM benchmark_results
-        WHERE status = 'OK'
-        ORDER BY {column}
+        SELECT DISTINCT {column} FROM benchmark_results WHERE status = 'OK' ORDER BY {column}
     """
 
     with get_connection() as connection:

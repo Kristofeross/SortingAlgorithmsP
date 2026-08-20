@@ -1,8 +1,10 @@
+import numpy as np
+
 from visualization.config import (
     ALGORITHM_COLORS, ALGORITHM_MARKERS, DATASET_LABELS, DEFAULT_DATASET,
     SPEEDUP_VS_DATA_SIZE_DIR, SPEEDUP_VS_CORES_DIR, SPEEDUP_COMPARISON_DIR,
 )
-from visualization.loader import load_all, get_algorithms, get_data_sizes
+from visualization.loader import load_all, get_algorithms, get_data_sizes, get_datasets
 from visualization.utils import create_figure, finish_plot, get_distinct_colors
 from visualization.style import use_log_scale_x, set_clean_ticks
 from visualization.filters import filter_algorithm, filter_dataset, filter_parallel
@@ -22,9 +24,8 @@ def plot_ideal_speedup_line(ax, cores) -> None:
     )
 
 
-# Chart: speedup vs number of cores
 def plot_speedup_vs_cores_per_algorithm(df, dataset: str = DEFAULT_DATASET):
-    print("Generowanie: Speedup vs Cores (na 1 algorytm)")
+    print("Generowanie: Speedup vs Cores (per algorytm)")
 
     algorithms = get_algorithms()
     data_sizes = sorted(get_data_sizes())
@@ -79,10 +80,9 @@ def plot_speedup_vs_cores_per_algorithm(df, dataset: str = DEFAULT_DATASET):
 
         filename = algorithm.lower().replace(" ", "_") + "_speedup_vs_cores_" + dataset
 
-        finish_plot(fig, ax, SPEEDUP_VS_CORES_DIR, filename)
+        finish_plot(fig, ax, SPEEDUP_VS_CORES_DIR, filename, subfolder=dataset)
 
 
-# Chart: speedup vs number of cores
 def plot_speedup_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Speedup vs Cores (porównanie algorytmów)")
 
@@ -99,7 +99,7 @@ def plot_speedup_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
     dataset_df = filter_parallel(dataset_df)
 
     if dataset_df.empty:
-        print(f"Brak danych dla zbioru '{dataset}', pomijam.")
+        print(f"  Brak danych dla zbioru '{dataset}', pomijam.")
         return
 
     dataset_label = DATASET_LABELS.get(dataset, dataset)
@@ -136,10 +136,9 @@ def plot_speedup_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
 
     filename = "speedup_vs_cores_comparison_" + dataset
 
-    finish_plot(fig, ax, SPEEDUP_VS_CORES_DIR, filename)
+    finish_plot(fig, ax, SPEEDUP_VS_CORES_DIR, filename, subfolder=dataset)
 
 
-# Chart: speedup vs data size, for a fixed (maximum) number of cores
 def plot_speedup_vs_data_size(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Speedup vs Data Size")
 
@@ -149,7 +148,7 @@ def plot_speedup_vs_data_size(df, dataset: str = DEFAULT_DATASET):
     dataset_df = filter_parallel(dataset_df)
 
     if dataset_df.empty:
-        print(f"Brak danych dla zbioru '{dataset}', pomijam.")
+        print(f"  Brak danych dla zbioru '{dataset}', pomijam.")
         return
 
     max_cores = dataset_df["cores"].max()
@@ -194,10 +193,9 @@ def plot_speedup_vs_data_size(df, dataset: str = DEFAULT_DATASET):
 
     filename = "speedup_vs_data_size_" + dataset
 
-    finish_plot(fig, ax, SPEEDUP_VS_DATA_SIZE_DIR, filename)
+    finish_plot(fig, ax, SPEEDUP_VS_DATA_SIZE_DIR, filename, subfolder=dataset)
 
 
-# Chart: ranking of algorithms by speedup, for each data size
 def plot_speedup_comparison(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Speedup Comparison (ranking)")
 
@@ -255,7 +253,7 @@ def plot_speedup_comparison(df, dataset: str = DEFAULT_DATASET):
 
         filename = f"speedup_comparison_{dataset}_{size}"
 
-        finish_plot(fig, ax, SPEEDUP_COMPARISON_DIR, filename)
+        finish_plot(fig, ax, SPEEDUP_COMPARISON_DIR, filename, subfolder=dataset)
 
 
 def generate_all_speedup_charts() -> None:
@@ -268,8 +266,10 @@ def generate_all_speedup_charts() -> None:
         print("Brak danych w bazie.")
         return
 
+    datasets = get_datasets()
+
     charts = [
-        ("Speedup vs Cores (na 1 algorytm)", plot_speedup_vs_cores_per_algorithm),
+        ("Speedup vs Cores (per algorytm)", plot_speedup_vs_cores_per_algorithm),
         ("Speedup vs Cores (porównanie)", plot_speedup_vs_cores_comparison),
         ("Speedup vs Data Size", plot_speedup_vs_data_size),
         ("Speedup Comparison (ranking)", plot_speedup_comparison),
@@ -278,7 +278,9 @@ def generate_all_speedup_charts() -> None:
     for name, function in charts:
         print()
         print(f"--- {name} ---")
-        function(df)
+
+        for dataset in datasets:
+            function(df, dataset=dataset)
 
     print()
     print(">>> Zakończono generowanie wykresów speedup")

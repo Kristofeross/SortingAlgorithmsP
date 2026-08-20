@@ -1,16 +1,15 @@
 import numpy as np
 
 from visualization.config import (
-    ALGORITHM_COLORS, ALGORITHM_MARKERS, DATASET_LABELS,DEFAULT_DATASET,
+    ALGORITHM_COLORS, ALGORITHM_MARKERS, DATASET_LABELS, DEFAULT_DATASET,
     MEMORY_VS_DATA_SIZE_DIR, MEMORY_VS_CORES_DIR, MEMORY_COMPARISON_DIR,
 )
-from visualization.loader import load_all, get_algorithms, get_data_sizes
+from visualization.loader import load_all, get_algorithms, get_data_sizes, get_datasets
 from visualization.utils import create_figure, finish_plot, get_distinct_colors
 from visualization.style import use_log_scale_x, set_clean_ticks
 from visualization.filters import filter_algorithm, filter_dataset, filter_parallel
 
 
-# Chart: RAM usage (avg_mem) vs. number of cores, separate file per algorithm, separate line per data size.
 def plot_memory_vs_cores_per_algorithm(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Memory vs Cores (per algorytm)")
 
@@ -63,10 +62,9 @@ def plot_memory_vs_cores_per_algorithm(df, dataset: str = DEFAULT_DATASET):
 
         filename = algorithm.lower().replace(" ", "_") + "_memory_vs_cores_" + dataset
 
-        finish_plot(fig, ax, MEMORY_VS_CORES_DIR, filename)
+        finish_plot(fig, ax, MEMORY_VS_CORES_DIR, filename, subfolder=dataset)
 
 
-# Chart: RAM usage vs. number of cores, all algorithms in one chart, for the largest available data size
 def plot_memory_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Memory vs Cores (porównanie algorytmów)")
 
@@ -132,10 +130,9 @@ def plot_memory_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
 
     filename = "memory_vs_cores_comparison_" + dataset
 
-    finish_plot(fig, ax, MEMORY_VS_CORES_DIR, filename)
+    finish_plot(fig, ax, MEMORY_VS_CORES_DIR, filename, subfolder=dataset)
 
 
-# Chart: RAM usage vs data size, to determine the (maximum) # of cores.
 def plot_memory_vs_data_size(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Memory vs Data Size")
 
@@ -145,7 +142,7 @@ def plot_memory_vs_data_size(df, dataset: str = DEFAULT_DATASET):
     dataset_df = filter_parallel(dataset_df)
 
     if dataset_df.empty:
-        print(f"Brak danych dla zbioru '{dataset}', pomijam.")
+        print(f"  Brak danych dla zbioru '{dataset}', pomijam.")
         return
 
     max_cores = dataset_df["cores"].max()
@@ -197,10 +194,9 @@ def plot_memory_vs_data_size(df, dataset: str = DEFAULT_DATASET):
 
     filename = "memory_vs_data_size_" + dataset
 
-    finish_plot(fig, ax, MEMORY_VS_DATA_SIZE_DIR, filename)
+    finish_plot(fig, ax, MEMORY_VS_DATA_SIZE_DIR, filename, subfolder=dataset)
 
 
-# Chart: Ranking of algorithms by RAM usage, for each size
 def plot_memory_comparison(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Memory Comparison (ranking)")
 
@@ -269,7 +265,7 @@ def plot_memory_comparison(df, dataset: str = DEFAULT_DATASET):
 
         filename = f"memory_comparison_{dataset}_{size}"
 
-        finish_plot(fig, ax, MEMORY_COMPARISON_DIR, filename)
+        finish_plot(fig, ax, MEMORY_COMPARISON_DIR, filename, subfolder=dataset)
 
 
 def generate_all_memory_charts() -> None:
@@ -283,16 +279,20 @@ def generate_all_memory_charts() -> None:
         return
 
     charts = [
-        ("Memory vs Cores (na 1 algorytm)", plot_memory_vs_cores_per_algorithm),
+        ("Memory vs Cores (per algorytm)", plot_memory_vs_cores_per_algorithm),
         ("Memory vs Cores (porównanie)", plot_memory_vs_cores_comparison),
         ("Memory vs Data Size", plot_memory_vs_data_size),
         ("Memory Comparison (ranking)", plot_memory_comparison),
     ]
 
+    datasets = get_datasets()
+
     for name, function in charts:
         print()
         print(f"--- {name} ---")
-        function(df)
+
+        for dataset in datasets:
+            function(df, dataset=dataset)
 
     print()
     print(">>> Zakończono generowanie wykresów zużycia RAM")

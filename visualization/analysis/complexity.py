@@ -1,8 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from visualization.config import ALGORITHM_COLORS, ALGORITHM_MARKERS, DATASET_LABELS, DEFAULT_DATASET, COMPLEXITY_TABLES_DIR, COMPLEXITY_DIR
-from visualization.loader import load_all, get_algorithms
+from visualization.config import (
+    ALGORITHM_COLORS, ALGORITHM_MARKERS, DATASET_LABELS,
+    DEFAULT_DATASET, COMPLEXITY_TABLES_DIR, COMPLEXITY_DIR,
+)
+from visualization.loader import load_all, get_algorithms, get_datasets
 from visualization.utils import ensure_directory
 from visualization.style import set_clean_ticks, format_log_axis_plain
 from visualization.filters import filter_algorithm, filter_dataset, filter_sequential
@@ -62,6 +65,7 @@ def fit_complexity(df, dataset: str = DEFAULT_DATASET) -> "pd.DataFrame":
             in_range = None
 
         rows.append({
+            "dataset": dataset,
             "algorithm": algorithm,
             "empirical_exponent": slope,
             "intercept": intercept,
@@ -80,6 +84,7 @@ def export_complexity_table(complexity_df) -> None:
     ensure_directory(COMPLEXITY_TABLES_DIR)
     path = COMPLEXITY_TABLES_DIR / "complexity_analysis.csv"
     complexity_df.to_csv(path, index=False, float_format="%.4f")
+    print(f"  Zapisano: {path}")
 
 
 def plot_complexity_fit(df, complexity_df, dataset: str = DEFAULT_DATASET) -> None:
@@ -132,10 +137,11 @@ def plot_complexity_fit(df, complexity_df, dataset: str = DEFAULT_DATASET) -> No
     ax.set_ylabel("Czas wykonania [s]")
     ax.legend(fontsize=10)
 
-    ensure_directory(COMPLEXITY_DIR)
-    path = COMPLEXITY_DIR / f"complexity_fit_{dataset}.png"
+    ensure_directory(COMPLEXITY_DIR / dataset)
+    path = COMPLEXITY_DIR / dataset / f"complexity_fit_{dataset}.png"
     fig.savefig(path, dpi=300, bbox_inches="tight")
     plt.close(fig)
+    print(f"  Zapisano: {path}")
 
 
 def generate_complexity_analysis() -> None:
@@ -148,13 +154,24 @@ def generate_complexity_analysis() -> None:
         print("Brak danych w bazie.")
         return
 
-    complexity_df = fit_complexity(df)
+    all_fits = []
 
-    if complexity_df.empty:
-        print("Brak wystarczających danych sekwencyjnych do dopasowania.")
+    for dataset in get_datasets():
+        complexity_df = fit_complexity(df, dataset=dataset)
+
+        if complexity_df.empty:
+            print(f"  Brak wystarczających danych sekwencyjnych dla '{dataset}', pomijam.")
+            continue
+
+        all_fits.append(complexity_df)
+        plot_complexity_fit(df, complexity_df, dataset=dataset)
+
+    if not all_fits:
+        print("Brak danych do zbudowania tabeli złożoności.")
         return
 
-    export_complexity_table(complexity_df)
-    plot_complexity_fit(df, complexity_df)
+    import pandas as pd
+    combined = pd.concat(all_fits, ignore_index=True)
+    export_complexity_table(combined)
 
     print(">>> Zakończono generowanie analizy złożoności")

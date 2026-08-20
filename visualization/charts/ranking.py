@@ -2,12 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from visualization.config import DATASET_LABELS, DEFAULT_DATASET, DEFAULT_DATA_SIZE, DEFAULT_CORES, RANKING_DIR
-from visualization.loader import load_all, get_algorithms, get_data_sizes
+from visualization.loader import load_all, get_algorithms, get_data_sizes, get_datasets
 from visualization.utils import ensure_directory, save_plot, close_plot
 from visualization.filters import filter_dataset, filter_parallel
 
 
-# Metrics included in the aggregate ranking
 RANKING_METRICS = [
     ("avg_time", "Czas wykonania [s]", False),
     ("speedup", "Speedup", True),
@@ -17,7 +16,7 @@ RANKING_METRICS = [
 ]
 
 
-def resolve_data_size(df, preferred: int):
+def _resolve_data_size(df, preferred: int):
     available = get_data_sizes()
 
     if not available:
@@ -29,15 +28,15 @@ def resolve_data_size(df, preferred: int):
     return max(available)
 
 
-# Chart: aggregate heatmap ranking
-def plot_multi_metric_ranking(df,
+def plot_multi_metric_ranking(
+    df,
     dataset: str = DEFAULT_DATASET,
     data_size: int = DEFAULT_DATA_SIZE,
     cores: int = DEFAULT_CORES,
 ):
     print("Generowanie: Multi-Metric Ranking")
 
-    resolved_size = resolve_data_size(df, data_size)
+    resolved_size = _resolve_data_size(df, data_size)
 
     if resolved_size is None:
         print("  Brak danych, pomijam.")
@@ -131,7 +130,7 @@ def plot_multi_metric_ranking(df,
     filename = f"multi_metric_ranking_{dataset}_{resolved_size}_{cores}cores"
 
     ensure_directory(RANKING_DIR)
-    save_plot(fig, RANKING_DIR, filename)
+    save_plot(fig, RANKING_DIR, filename, subfolder=dataset)
     close_plot(fig)
 
 
@@ -145,7 +144,8 @@ def generate_all_ranking_charts() -> None:
         print("Brak danych w bazie.")
         return
 
-    plot_multi_metric_ranking(df)
+    for dataset in get_datasets():
+        plot_multi_metric_ranking(df, dataset=dataset)
 
     print()
     print(">>> Zakończono generowanie zbiorczego rankingu")

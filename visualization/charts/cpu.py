@@ -2,7 +2,7 @@ from visualization.config import (
     ALGORITHM_COLORS, ALGORITHM_MARKERS, DATASET_LABELS, DEFAULT_DATASET,
     CPU_VS_DATA_SIZE_DIR, CPU_VS_CORES_DIR, CPU_COMPARISON_DIR,
 )
-from visualization.loader import load_all, get_algorithms, get_data_sizes
+from visualization.loader import load_all, get_algorithms, get_data_sizes, get_datasets
 from visualization.utils import create_figure, finish_plot, get_distinct_colors
 from visualization.style import use_log_scale_x, set_clean_ticks
 from visualization.filters import filter_algorithm, filter_dataset, filter_parallel
@@ -23,9 +23,8 @@ def plot_ideal_cpu_line(ax, cores) -> None:
     )
 
 
-# Chart: CPU usage vs. number of cores, separate file per algorithm,
 def plot_cpu_vs_cores_per_algorithm(df, dataset: str = DEFAULT_DATASET):
-    print("Generowanie: CPU vs Cores (na 1 algorytm)")
+    print("Generowanie: CPU vs Cores (per algorytm)")
 
     algorithms = get_algorithms()
     data_sizes = sorted(get_data_sizes())
@@ -71,7 +70,7 @@ def plot_cpu_vs_cores_per_algorithm(df, dataset: str = DEFAULT_DATASET):
 
         ax.set_title(
             f"{algorithm}\n"
-            f"Zużycie CPU w zależności od liczby rdzeni\n"
+            f"Wykorzystanie CPU w zależności od liczby rdzeni\n"
             f"{dataset_label}"
         )
         ax.set_xlabel("Liczba rdzeni")
@@ -79,10 +78,9 @@ def plot_cpu_vs_cores_per_algorithm(df, dataset: str = DEFAULT_DATASET):
 
         filename = algorithm.lower().replace(" ", "_") + "_cpu_vs_cores_" + dataset
 
-        finish_plot(fig, ax, CPU_VS_CORES_DIR, filename)
+        finish_plot(fig, ax, CPU_VS_CORES_DIR, filename, subfolder=dataset)
 
 
-# Chart: CPU usage vs. number of cores
 def plot_cpu_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: CPU vs Cores (porównanie algorytmów)")
 
@@ -99,7 +97,7 @@ def plot_cpu_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
     dataset_df = filter_parallel(dataset_df)
 
     if dataset_df.empty:
-        print(f"Brak danych dla zbioru '{dataset}', pomijam.")
+        print(f"  Brak danych dla zbioru '{dataset}', pomijam.")
         return
 
     dataset_label = DATASET_LABELS.get(dataset, dataset)
@@ -128,7 +126,7 @@ def plot_cpu_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
     set_clean_ticks(ax, all_cores)
 
     ax.set_title(
-        f"Zużycie CPU w zależności od liczby rdzeni\n"
+        f"Wykorzystanie CPU w zależności od liczby rdzeni\n"
         f"{dataset_label}, {max_size:,} elementów"
     )
     ax.set_xlabel("Liczba rdzeni")
@@ -136,10 +134,9 @@ def plot_cpu_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
 
     filename = "cpu_vs_cores_comparison_" + dataset
 
-    finish_plot(fig, ax, CPU_VS_CORES_DIR, filename)
+    finish_plot(fig, ax, CPU_VS_CORES_DIR, filename, subfolder=dataset)
 
 
-# Chart: CPU usage vs. data size, for a fixed (maximum) number of cores.
 def plot_cpu_vs_data_size(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: CPU vs Data Size")
 
@@ -149,7 +146,7 @@ def plot_cpu_vs_data_size(df, dataset: str = DEFAULT_DATASET):
     dataset_df = filter_parallel(dataset_df)
 
     if dataset_df.empty:
-        print(f"Brak danych dla zbioru '{dataset}', pomijam.")
+        print(f"  Brak danych dla zbioru '{dataset}', pomijam.")
         return
 
     max_cores = dataset_df["cores"].max()
@@ -186,7 +183,7 @@ def plot_cpu_vs_data_size(df, dataset: str = DEFAULT_DATASET):
     )
 
     ax.set_title(
-        f"Zużycie CPU w zależności od rozmiaru danych\n"
+        f"Wykorzystanie CPU w zależności od rozmiaru danych\n"
         f"{dataset_label}, {max_cores} rdzeni"
     )
     ax.set_xlabel("Rozmiar danych")
@@ -194,10 +191,9 @@ def plot_cpu_vs_data_size(df, dataset: str = DEFAULT_DATASET):
 
     filename = "cpu_vs_data_size_" + dataset
 
-    finish_plot(fig, ax, CPU_VS_DATA_SIZE_DIR, filename)
+    finish_plot(fig, ax, CPU_VS_DATA_SIZE_DIR, filename, subfolder=dataset)
 
 
-# Chart: Ranking of algorithms by CPU usage, for each data size.
 def plot_cpu_comparison(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: CPU Comparison (ranking)")
 
@@ -251,7 +247,7 @@ def plot_cpu_comparison(df, dataset: str = DEFAULT_DATASET):
         )
 
         ax.set_title(
-            f"Ranking algorytmów wg zużycia CPU\n"
+            f"Ranking algorytmów wg wykorzystania CPU\n"
             f"{dataset_label}, {size:,} elementów, {max_cores} rdzeni"
         )
         ax.set_xlabel("Algorytm")
@@ -260,7 +256,7 @@ def plot_cpu_comparison(df, dataset: str = DEFAULT_DATASET):
 
         filename = f"cpu_comparison_{dataset}_{size}"
 
-        finish_plot(fig, ax, CPU_COMPARISON_DIR, filename)
+        finish_plot(fig, ax, CPU_COMPARISON_DIR, filename, subfolder=dataset)
 
 
 def generate_all_cpu_charts() -> None:
@@ -274,16 +270,20 @@ def generate_all_cpu_charts() -> None:
         return
 
     charts = [
-        ("CPU vs Cores (na 1 algorytm)", plot_cpu_vs_cores_per_algorithm),
+        ("CPU vs Cores (per algorytm)", plot_cpu_vs_cores_per_algorithm),
         ("CPU vs Cores (porównanie)", plot_cpu_vs_cores_comparison),
         ("CPU vs Data Size", plot_cpu_vs_data_size),
         ("CPU Comparison (ranking)", plot_cpu_comparison),
     ]
 
+    datasets = get_datasets()
+
     for name, function in charts:
         print()
         print(f"--- {name} ---")
-        function(df)
+
+        for dataset in datasets:
+            function(df, dataset=dataset)
 
     print()
     print(">>> Zakończono generowanie wykresów CPU")
