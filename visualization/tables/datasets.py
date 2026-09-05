@@ -3,7 +3,7 @@ import pandas as pd
 from visualization.config import DEFAULT_DATA_SIZE, DEFAULT_CORES, DATASETS_TABLE_DIR, DATASET_LABELS
 from visualization.loader import load_all
 from visualization.filters import filter_data_size, filter_parallel
-from visualization.tables.common import export_table
+from visualization.tables.common import export_table, format_mean_std
 
 
 def build_dataset_impact_table(
@@ -25,28 +25,26 @@ def build_dataset_impact_table(
         lambda value: DATASET_LABELS.get(value, value)
     )
 
+    filtered["time_with_std"] = filtered.apply(
+        lambda row: format_mean_std(
+            row["avg_time"],
+            row["std_time"],
+        ),
+        axis=1,
+    )
+
     pivot = filtered.pivot_table(
         index="dataset_label",
         columns="algorithm",
-        values="avg_time",
-        aggfunc="mean",
+        values="time_with_std",
+        aggfunc="first",
     )
 
     pivot = pivot.reset_index()
 
-    pivot = pivot.rename(
-        columns={
-            "dataset_label": "Zbiór danych",
-        }
-    )
+    pivot = pivot.rename(columns={ "dataset_label": "Zbiór danych" })
 
-    preferred_order = [
-        "Zbiór danych",
-        "Quick Sort",
-        "Merge Sort",
-        "Bucket Sort",
-        "Sample Sort",
-    ]
+    preferred_order = ["Zbiór danych", "Quick Sort", "Merge Sort", "Bucket Sort", "Sample Sort"]
 
     available = [
         column
@@ -74,8 +72,9 @@ def generate_dataset_impact_table() -> None:
         directory=DATASETS_TABLE_DIR,
         filename="dataset_impact",
         caption=(
-            "Średni czas wykonania badanych algorytmów dla różnych "
-            "charakterystyk danych wejściowych przy 8 jednostkach wykonawczych."
+            "Średni czas wykonania wraz z odchyleniem standardowym "
+            "badanych algorytmów dla różnych charakterystyk danych "
+            "wejściowych przy 8 jednostkach wykonawczych."
         ),
         label="tab:dataset-impact",
         column_format="p{5.2cm}rrrr",

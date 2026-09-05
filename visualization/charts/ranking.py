@@ -9,8 +9,8 @@ from visualization.filters import filter_dataset, filter_parallel
 
 RANKING_METRICS = [
     ("avg_time", "Czas wykonania [s]", False),
-    ("speedup", "Speedup", True),
-    ("efficiency", "Efficiency", True),
+    ("speedup", "Przyspieszenie", True),
+    ("efficiency", "Efektywność", True),
     ("avg_cpu", "CPU [%]", True),
     ("avg_mem", "RAM [MB]", False),
 ]
@@ -50,7 +50,7 @@ def plot_multi_metric_ranking(
     subset_df = subset_df[subset_df["cores"] == cores]
 
     if subset_df.empty:
-        print(f"  Brak danych dla rozmiaru={resolved_size}, rdzeni={cores}, pomijam.")
+        print(f"  Brak danych dla rozmiaru={resolved_size}, jednostek wykonawczych={cores}, pomijam.")
         return
 
     raw = np.full((len(algorithms), len(RANKING_METRICS)), np.nan)
@@ -106,7 +106,7 @@ def plot_multi_metric_ranking(
 
     ax.set_title(
         f"Zbiorczy ranking algorytmów wg wszystkich metryk\n"
-        f"{dataset_label}, {resolved_size:,} elementów, {cores} rdzeni"
+        f"{dataset_label}, {resolved_size:,} elementów, {cores} jednostek wykonawczych"
     )
 
     for i in range(len(algorithms)):

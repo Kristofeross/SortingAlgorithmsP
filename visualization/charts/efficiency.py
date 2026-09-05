@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+
 from visualization.config import (
     ALGORITHM_COLORS, ALGORITHM_MARKERS, DATASET_LABELS, DEFAULT_DATASET,
     EFFICIENCY_VS_DATA_SIZE_DIR, EFFICIENCY_VS_CORES_DIR, EFFICIENCY_COMPARISON_DIR,
@@ -14,7 +16,7 @@ def plot_ideal_efficiency_line(ax) -> None:
         linestyle="--",
         color="gray",
         linewidth=1.5,
-        label="Efficiency idealna",
+        label="Efektywność idealna",
         zorder=1,
     )
 
@@ -65,11 +67,11 @@ def plot_efficiency_vs_cores_per_algorithm(df, dataset: str = DEFAULT_DATASET):
 
         ax.set_title(
             f"{algorithm}\n"
-            f"Efficiency w zależności od liczby rdzeni\n"
+            f"Efektywność w zależności od liczby jednostek wykonawczych\n"
             f"{dataset_label}"
         )
-        ax.set_xlabel("Liczba rdzeni")
-        ax.set_ylabel("Efficiency")
+        ax.set_xlabel("Liczba jednostek wykonawczych")
+        ax.set_ylabel("Efektywność")
 
         filename = algorithm.lower().replace(" ", "_") + "_efficiency_vs_cores_" + dataset
 
@@ -97,9 +99,13 @@ def plot_efficiency_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
 
     dataset_label = DATASET_LABELS.get(dataset, dataset)
 
-    fig, ax = create_figure()
-
-    plot_ideal_efficiency_line(ax)
+    fig, (ax, ax_ideal) = plt.subplots(
+        2,
+        1,
+        figsize=(12, 9),
+        height_ratios=[4, 1],
+        sharex=True,
+    )
 
     for algorithm in algorithms:
         algorithm_df = filter_algorithm(dataset_df, algorithm)
@@ -116,19 +122,38 @@ def plot_efficiency_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
             marker=ALGORITHM_MARKERS.get(algorithm),
         )
 
+    ax_ideal.axhline(
+        y=1.0,
+        linestyle="--",
+        color="gray",
+        linewidth=1.8,
+        label="Efektywność idealna",
+    )
+
+    ax_ideal.set_ylim(0.9, 1.1)
+    ax_ideal.set_yticks([1.0])
+    ax_ideal.set_ylabel("Idealna")
+    ax_ideal.grid(False)
+
     use_log_scale_x(ax)
-    set_clean_ticks(ax, dataset_df["cores"].unique())
+    use_log_scale_x(ax_ideal)
+
+    set_clean_ticks(ax_ideal, dataset_df["cores"].unique())
 
     ax.set_title(
-        f"Efficiency w zależności od liczby rdzeni\n"
+        f"Efektywność w zależności od liczby jednostek wykonawczych\n"
         f"{dataset_label}, {max_size:,} elementów"
     )
-    ax.set_xlabel("Liczba rdzeni")
-    ax.set_ylabel("Efficiency")
+
+    ax.set_ylabel("Efektywność")
+    ax_ideal.set_xlabel("Liczba jednostek wykonawczych")
+
+    ax.legend()
+    ax_ideal.legend()
 
     filename = "efficiency_vs_cores_comparison_" + dataset
 
-    finish_plot(fig, ax, EFFICIENCY_VS_CORES_DIR, filename, subfolder=dataset)
+    finish_plot(fig, [ax, ax_ideal], EFFICIENCY_VS_CORES_DIR, filename, subfolder=dataset)
 
 
 def plot_efficiency_vs_data_size(df, dataset: str = DEFAULT_DATASET):
@@ -171,11 +196,11 @@ def plot_efficiency_vs_data_size(df, dataset: str = DEFAULT_DATASET):
     set_clean_ticks(ax, dataset_df["data_size"].unique())
 
     ax.set_title(
-        f"Efficiency w zależności od rozmiaru danych\n"
-        f"{dataset_label}, {max_cores} rdzeni"
+        f"Efektywność w zależności od rozmiaru danych\n"
+        f"{dataset_label}, {max_cores} jednostek wykonawczych"
     )
     ax.set_xlabel("Rozmiar danych")
-    ax.set_ylabel("Efficiency")
+    ax.set_ylabel("Efektywność")
 
     filename = "efficiency_vs_data_size_" + dataset
 
@@ -231,11 +256,11 @@ def plot_efficiency_comparison(df, dataset: str = DEFAULT_DATASET):
         )
 
         ax.set_title(
-            f"Ranking algorytmów wg efficiency\n"
-            f"{dataset_label}, {size:,} elementów, {cores} rdzeni"
+            f"Ranking algorytmów wg efektywności\n"
+            f"{dataset_label}, {size:,} elementów, {cores} jednostek wykonawczych"
         )
         ax.set_xlabel("Algorytm")
-        ax.set_ylabel("Efficiency")
+        ax.set_ylabel("Efektywność")
         ax.tick_params(axis="x", rotation=20)
 
         filename = f"efficiency_comparison_{dataset}_{size}_{cores}cores"

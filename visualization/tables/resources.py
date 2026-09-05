@@ -22,12 +22,7 @@ def build_resources_table(
         return pd.DataFrame()
 
     result = filtered[
-        [
-            "algorithm",
-            "avg_cpu",
-            "avg_mem",
-            "max_mem",
-        ]
+        ["algorithm", "avg_cpu", "avg_mem", "max_mem"]
     ].copy()
 
     result = result.rename(

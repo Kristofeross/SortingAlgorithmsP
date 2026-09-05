@@ -13,6 +13,8 @@ from visualization.tables.summary import generate_summary_table
 from visualization.tables.scalability import generate_scalability_tables
 from visualization.tables.resources import generate_resources_table
 from visualization.tables.datasets import generate_dataset_impact_table
+from visualization.tables.raw_results import export_raw_results_by_dataset
+from visualization.tables.best_execution_time import generate_best_execution_time_table
 
 def generate_all() -> None:
     print("=" * 70)
@@ -20,39 +22,43 @@ def generate_all() -> None:
 
     create_results_directories()
 
-    # # Execution time
-    # generate_all_execution_time_charts()
-    #
-    # # Influence of input data
-    # generate_all_dataset_charts()
-    #
-    # # Speedup
-    # generate_all_speedup_charts()
-    #
-    # # EFFICIENCY
-    # generate_all_efficiency_charts()
-    #
-    # # CPU
-    # generate_all_cpu_charts()
-    #
-    # # Memory
-    # generate_all_memory_charts()
-    #
-    # # Heatmaps
-    # generate_all_heatmap_charts()
-    #
-    # # Overall ranking
-    # generate_all_ranking_charts()
-    #
-    # # Decision table and complexity analysis
-    # generate_decision_table()
-    # generate_complexity_analysis()
+    # Execution time
+    generate_all_execution_time_charts()
+
+    # Influence of input data
+    generate_all_dataset_charts()
+
+    # Speedup
+    generate_all_speedup_charts()
+
+    # EFFICIENCY
+    generate_all_efficiency_charts()
+
+    # CPU
+    generate_all_cpu_charts()
+
+    # Memory
+    generate_all_memory_charts()
+
+    # Heatmaps
+    generate_all_heatmap_charts()
+
+    # Overall ranking
+    generate_all_ranking_charts()
+
+    # Decision table and complexity analysis
+    generate_decision_table()
+    generate_complexity_analysis()
 
     # Tables
     generate_summary_table()
     generate_scalability_tables()
     generate_resources_table()
     generate_dataset_impact_table()
+    generate_best_execution_time_table()
+
+    # Results CSV
+    export_raw_results_by_dataset()
 
     print()
     print("================   Zakończeno generowanie wykresów   ================")

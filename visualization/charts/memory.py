@@ -54,11 +54,11 @@ def plot_memory_vs_cores_per_algorithm(df, dataset: str = DEFAULT_DATASET):
 
         ax.set_title(
             f"{algorithm}\n"
-            f"Średnie zużycie RAM w zależności od liczby rdzeni\n"
+            f"Średnie wykorzystanie RAM w zależności od liczby jednostek wykonawczych\n"
             f"{dataset_label}"
         )
-        ax.set_xlabel("Liczba rdzeni")
-        ax.set_ylabel("Średnie użycie RAM [MB]")
+        ax.set_xlabel("Liczba jednostek wykonawczych")
+        ax.set_ylabel("Średnie wykorzystanie RAM [MB]")
 
         filename = algorithm.lower().replace(" ", "_") + "_memory_vs_cores_" + dataset
 
@@ -121,11 +121,11 @@ def plot_memory_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
     set_clean_ticks(ax, dataset_df["cores"].unique())
 
     ax.set_title(
-        f"Zużycie RAM w zależności od liczby rdzeni\n"
+        f"Wykorzystanie RAM w zależności od liczby jednostek wykonawczych\n"
         f"{dataset_label}, {max_size:,} elementów"
     )
-    ax.set_xlabel("Liczba rdzeni")
-    ax.set_ylabel("Użycie RAM [MB]")
+    ax.set_xlabel("Liczba jednostek wykonawczych")
+    ax.set_ylabel("Wykorzystanie RAM [MB]")
     ax.legend(fontsize=9, ncol=2)
 
     filename = "memory_vs_cores_comparison_" + dataset
@@ -185,11 +185,11 @@ def plot_memory_vs_data_size(df, dataset: str = DEFAULT_DATASET):
     set_clean_ticks(ax, dataset_df["data_size"].unique())
 
     ax.set_title(
-        f"Zużycie RAM w zależności od rozmiaru danych\n"
-        f"{dataset_label}, {max_cores} rdzeni"
+        f"Wykorzystanie RAM w zależności od rozmiaru danych\n"
+        f"{dataset_label}, {max_cores} jednostek wykonawczych"
     )
     ax.set_xlabel("Rozmiar danych")
-    ax.set_ylabel("Użycie RAM [MB]")
+    ax.set_ylabel("Wykorzystanie RAM [MB]")
     ax.legend(fontsize=9, ncol=2)
 
     filename = "memory_vs_data_size_" + dataset
@@ -239,7 +239,7 @@ def plot_memory_comparison(df, dataset: str = DEFAULT_DATASET):
             x - bar_width / 2,
             comparison_df["avg_mem"],
             width=bar_width,
-            label="Średnie RAM",
+            label="Średnie wykorzystanie RAM",
             color="tab:blue",
         )
 
@@ -247,7 +247,7 @@ def plot_memory_comparison(df, dataset: str = DEFAULT_DATASET):
             x + bar_width / 2,
             comparison_df["max_mem"],
             width=bar_width,
-            label="Maksymalne RAM",
+            label="Maksymalne wykorzystanie RAM",
             color="tab:blue",
             alpha=0.5,
             hatch="//",
@@ -258,11 +258,11 @@ def plot_memory_comparison(df, dataset: str = DEFAULT_DATASET):
         ax.tick_params(axis="x", rotation=20)
 
         ax.set_title(
-            f"Ranking algorytmów wg zużycia RAM\n"
-            f"{dataset_label}, {size:,} elementów, {cores} rdzeni"
+            f"Ranking algorytmów wg wykorzystania RAM\n"
+            f"{dataset_label}, {size:,} elementów, {cores} jednostek wykonawczych"
         )
         ax.set_xlabel("Algorytm")
-        ax.set_ylabel("Użycie RAM [MB]")
+        ax.set_ylabel("Wykorzystanie RAM [MB]")
 
         filename = f"memory_comparison_{dataset}_{size}_{cores}cores"
 
@@ -270,6 +270,75 @@ def plot_memory_comparison(df, dataset: str = DEFAULT_DATASET):
             fig, ax, MEMORY_COMPARISON_DIR, filename,
             subfolder=f"{dataset}/{size}",
         )
+
+
+def plot_memory_max_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
+    print("Generowanie: Max Memory vs Cores (porównanie algorytmów)")
+
+    algorithms = get_algorithms()
+    data_sizes = get_data_sizes()
+
+    if not data_sizes:
+        return
+
+    max_size = max(data_sizes)
+
+    dataset_df = filter_dataset(df, dataset)
+    dataset_df = dataset_df[
+        dataset_df["data_size"] == max_size
+    ]
+    dataset_df = filter_parallel(dataset_df)
+
+    if dataset_df.empty:
+        print(f"  Brak danych dla zbioru '{dataset}', pomijam.")
+        return
+
+    dataset_label = DATASET_LABELS.get(dataset, dataset)
+
+    fig, ax = create_figure()
+
+    for algorithm in algorithms:
+        algorithm_df = filter_algorithm(dataset_df, algorithm)
+
+        algorithm_df = algorithm_df.sort_values("cores")
+
+        if algorithm_df.empty:
+            continue
+
+        color = ALGORITHM_COLORS.get(algorithm)
+        marker = ALGORITHM_MARKERS.get(algorithm)
+
+        ax.plot(
+            algorithm_df["cores"],
+            algorithm_df["max_mem"],
+            label=algorithm,
+            color=color,
+            marker=marker,
+            linestyle="-",
+        )
+
+    use_log_scale_x(ax)
+    set_clean_ticks(
+        ax,
+        dataset_df["cores"].unique(),
+    )
+
+    ax.set_title(
+        f"Maksymalne wykorzystanie pamięci RAM\n"
+        f"{dataset_label}, {max_size:,} elementów"
+    )
+    ax.set_xlabel("Liczba jednostek wykonawczych")
+    ax.set_ylabel("Maksymalne wykorzystanie RAM [MB]")
+
+    filename = ("memory_max_vs_cores_comparison_" + dataset)
+
+    finish_plot(
+        fig,
+        ax,
+        MEMORY_VS_CORES_DIR,
+        filename,
+        subfolder=dataset,
+    )
 
 
 def generate_all_memory_charts() -> None:
@@ -285,6 +354,7 @@ def generate_all_memory_charts() -> None:
     charts = [
         ("Memory vs Cores (per algorytm)", plot_memory_vs_cores_per_algorithm),
         ("Memory vs Cores (porównanie)", plot_memory_vs_cores_comparison),
+        ("Max Memory vs Cores (porównanie)", plot_memory_max_vs_cores_comparison),
         ("Memory vs Data Size", plot_memory_vs_data_size),
         ("Memory Comparison (ranking)", plot_memory_comparison),
     ]

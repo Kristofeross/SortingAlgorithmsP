@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+
 from visualization.config import (
     ALGORITHM_COLORS, ALGORITHM_MARKERS, DATASET_LABELS, DEFAULT_DATASET,
     CPU_VS_DATA_SIZE_DIR, CPU_VS_CORES_DIR, CPU_COMPARISON_DIR,
@@ -18,7 +20,7 @@ def plot_ideal_cpu_line(ax, cores) -> None:
         linestyle="--",
         color="gray",
         linewidth=1.5,
-        label="Maksymalne możliwe CPU (rdzenie × 100%)",
+        label="Maksymalne możliwe wykorzystanie CPU (jednostki × 100%)",
         zorder=1,
     )
 
@@ -70,11 +72,11 @@ def plot_cpu_vs_cores_per_algorithm(df, dataset: str = DEFAULT_DATASET):
 
         ax.set_title(
             f"{algorithm}\n"
-            f"Wykorzystanie CPU w zależności od liczby rdzeni\n"
+            f"Wykorzystanie CPU w zależności od liczby jednostek wykonawczych\n"
             f"{dataset_label}"
         )
-        ax.set_xlabel("Liczba rdzeni")
-        ax.set_ylabel("Średnie użycie CPU [%]")
+        ax.set_xlabel("Liczba jednostek wykonawczych")
+        ax.set_ylabel("Średnie wykorzystanie CPU [%]")
 
         filename = algorithm.lower().replace(" ", "_") + "_cpu_vs_cores_" + dataset
 
@@ -126,11 +128,11 @@ def plot_cpu_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
     set_clean_ticks(ax, all_cores)
 
     ax.set_title(
-        f"Wykorzystanie CPU w zależności od liczby rdzeni\n"
+        f"Wykorzystanie CPU w zależności od liczby jednostek wykonawczych\n"
         f"{dataset_label}, {max_size:,} elementów"
     )
-    ax.set_xlabel("Liczba rdzeni")
-    ax.set_ylabel("Średnie użycie CPU [%]")
+    ax.set_xlabel("Liczba jednostek wykonawczych")
+    ax.set_ylabel("Średnie wykorzystanie CPU [%]")
 
     filename = "cpu_vs_cores_comparison_" + dataset
 
@@ -150,15 +152,23 @@ def plot_cpu_vs_data_size(df, dataset: str = DEFAULT_DATASET):
         return
 
     max_cores = dataset_df["cores"].max()
-    dataset_df = dataset_df[dataset_df["cores"] == max_cores]
+    dataset_df = dataset_df[
+        dataset_df["cores"] == max_cores
+    ]
 
     dataset_label = DATASET_LABELS.get(dataset, dataset)
 
-    fig, ax = create_figure()
+    fig, (ax, ax_max) = plt.subplots(2, 1, figsize=(12, 9), height_ratios=[4, 1], sharex=True)
 
     for algorithm in algorithms:
-        algorithm_df = filter_algorithm(dataset_df, algorithm)
-        algorithm_df = algorithm_df.sort_values("data_size")
+        algorithm_df = filter_algorithm(
+            dataset_df,
+            algorithm,
+        )
+
+        algorithm_df = algorithm_df.sort_values(
+            "data_size"
+        )
 
         if algorithm_df.empty:
             continue
@@ -171,27 +181,48 @@ def plot_cpu_vs_data_size(df, dataset: str = DEFAULT_DATASET):
             marker=ALGORITHM_MARKERS.get(algorithm),
         )
 
-    use_log_scale_x(ax)
-    set_clean_ticks(ax, dataset_df["data_size"].unique())
+    data_sizes = sorted(
+        dataset_df["data_size"].unique()
+    )
 
-    ax.axhline(
-        y=max_cores * 100,
+    max_cpu = max_cores * 100
+
+    ax_max.plot(
+        data_sizes,
+        [max_cpu] * len(data_sizes),
         linestyle="--",
         color="gray",
-        linewidth=1.5,
         label=f"Maksymalne możliwe CPU ({max_cores} × 100%)",
     )
 
+    use_log_scale_x(ax)
+    use_log_scale_x(ax_max)
+
+    set_clean_ticks(ax, data_sizes)
+    set_clean_ticks(ax_max, data_sizes)
+
     ax.set_title(
         f"Wykorzystanie CPU w zależności od rozmiaru danych\n"
-        f"{dataset_label}, {max_cores} rdzeni"
+        f"{dataset_label}, {max_cores} jednostek wykonawczych"
     )
-    ax.set_xlabel("Rozmiar danych")
-    ax.set_ylabel("Średnie użycie CPU [%]")
+
+    ax.set_ylabel("Średnie wykorzystanie CPU [%]")
+
+    ax_max.set_xlabel("Rozmiar danych")
+    ax_max.set_ylabel("Maksimum")
+
+    ax.legend()
+    ax_max.legend()
 
     filename = "cpu_vs_data_size_" + dataset
 
-    finish_plot(fig, ax, CPU_VS_DATA_SIZE_DIR, filename, subfolder=dataset)
+    finish_plot(
+        fig,
+        [ax, ax_max],
+        CPU_VS_DATA_SIZE_DIR,
+        filename,
+        subfolder=dataset,
+    )
 
 
 def plot_cpu_comparison(df, dataset: str = DEFAULT_DATASET):
@@ -249,10 +280,10 @@ def plot_cpu_comparison(df, dataset: str = DEFAULT_DATASET):
 
         ax.set_title(
             f"Ranking algorytmów wg wykorzystania CPU\n"
-            f"{dataset_label}, {size:,} elementów, {cores} rdzeni"
+            f"{dataset_label}, {size:,} elementów, {cores} jednostek wykonawczych"
         )
         ax.set_xlabel("Algorytm")
-        ax.set_ylabel("Średnie użycie CPU [%]")
+        ax.set_ylabel("Średnie wykorzystanie CPU [%]")
         ax.tick_params(axis="x", rotation=20)
 
         filename = f"cpu_comparison_{dataset}_{size}_{cores}cores"

@@ -1,4 +1,4 @@
-import numpy as np
+import matplotlib.pyplot as plt
 
 from visualization.config import (
     ALGORITHM_COLORS, ALGORITHM_MARKERS, DATASET_LABELS, DEFAULT_DATASET,
@@ -19,7 +19,7 @@ def plot_ideal_speedup_line(ax, cores) -> None:
         linestyle="--",
         color="gray",
         linewidth=1.5,
-        label="Speedup idealny",
+        label="Przyspieszenie idealne",
         zorder=1,
     )
 
@@ -72,11 +72,11 @@ def plot_speedup_vs_cores_per_algorithm(df, dataset: str = DEFAULT_DATASET):
 
         ax.set_title(
             f"{algorithm}\n"
-            f"Speedup w zależności od liczby rdzeni\n"
+            f"Przyspieszenie w zależności od liczby jednostek wykonawczych\n"
             f"{dataset_label}"
         )
-        ax.set_xlabel("Liczba rdzeni")
-        ax.set_ylabel("Speedup")
+        ax.set_xlabel("Liczba jednostek wykonawczych")
+        ax.set_ylabel("Przyspieszenie")
 
         filename = algorithm.lower().replace(" ", "_") + "_speedup_vs_cores_" + dataset
 
@@ -103,11 +103,8 @@ def plot_speedup_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
         return
 
     dataset_label = DATASET_LABELS.get(dataset, dataset)
-    all_cores = sorted(dataset_df["cores"].unique())
 
-    fig, ax = create_figure()
-
-    plot_ideal_speedup_line(ax, all_cores)
+    fig, (ax, ax_ideal) = plt.subplots(2, 1, figsize=(12, 9), height_ratios=[4, 1], sharex=True)
 
     for algorithm in algorithms:
         algorithm_df = filter_algorithm(dataset_df, algorithm)
@@ -124,20 +121,44 @@ def plot_speedup_vs_cores_comparison(df, dataset: str = DEFAULT_DATASET):
             marker=ALGORITHM_MARKERS.get(algorithm),
         )
 
+    cores_values = sorted(dataset_df["cores"].unique())
+
+    ax_ideal.plot(
+        cores_values,
+        cores_values,
+        linestyle="--",
+        color="gray",
+        label="Przyspieszenie idealne",
+    )
+
     use_log_scale_x(ax)
-    set_clean_ticks(ax, all_cores)
+    use_log_scale_x(ax_ideal)
+
+    set_clean_ticks(ax, cores_values)
+    set_clean_ticks(ax_ideal, cores_values)
 
     ax.set_title(
-        f"Speedup w zależności od liczby rdzeni\n"
+        f"Przyspieszenie w zależności od liczby jednostek wykonawczych\n"
         f"{dataset_label}, {max_size:,} elementów"
     )
-    ax.set_xlabel("Liczba rdzeni")
-    ax.set_ylabel("Speedup")
+
+    ax.set_ylabel("Przyspieszenie")
+
+    ax_ideal.set_xlabel("Liczba jednostek wykonawczych")
+    ax_ideal.set_ylabel("Idealne")
+
+    ax.legend()
+    ax_ideal.legend()
 
     filename = "speedup_vs_cores_comparison_" + dataset
 
-    finish_plot(fig, ax, SPEEDUP_VS_CORES_DIR, filename, subfolder=dataset)
-
+    finish_plot(
+        fig,
+        [ax, ax_ideal],
+        SPEEDUP_VS_CORES_DIR,
+        filename,
+        subfolder=dataset,
+    )
 
 def plot_speedup_vs_data_size(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Speedup vs Data Size")
@@ -163,7 +184,7 @@ def plot_speedup_vs_data_size(df, dataset: str = DEFAULT_DATASET):
         linestyle="--",
         color="gray",
         linewidth=1.5,
-        label="Speedup = 1 (brak zysku)",
+        label="Przyspieszenie = 1 (brak zysku)",
     )
 
     for algorithm in algorithms:
@@ -185,11 +206,11 @@ def plot_speedup_vs_data_size(df, dataset: str = DEFAULT_DATASET):
     set_clean_ticks(ax, dataset_df["data_size"].unique())
 
     ax.set_title(
-        f"Speedup w zależności od rozmiaru danych\n"
-        f"{dataset_label}, {max_cores} rdzeni"
+        f"Przyspieszenie w zależności od rozmiaru danych\n"
+        f"{dataset_label}, {max_cores} jednostek wykonawczych"
     )
     ax.set_xlabel("Rozmiar danych")
-    ax.set_ylabel("Speedup")
+    ax.set_ylabel("Przyspieszenie")
 
     filename = "speedup_vs_data_size_" + dataset
 
@@ -245,11 +266,11 @@ def plot_speedup_comparison(df, dataset: str = DEFAULT_DATASET):
         )
 
         ax.set_title(
-            f"Ranking algorytmów wg speedupu\n"
-            f"{dataset_label}, {size:,} elementów, {cores} rdzeni"
+            f"Ranking algorytmów wg przyspieszenia\n"
+            f"{dataset_label}, {size:,} elementów, {cores} jednostek wykonawczych"
         )
         ax.set_xlabel("Algorytm")
-        ax.set_ylabel("Speedup")
+        ax.set_ylabel("Przyspieszenie")
         ax.tick_params(axis="x", rotation=20)
 
         filename = f"speedup_comparison_{dataset}_{size}_{cores}cores"

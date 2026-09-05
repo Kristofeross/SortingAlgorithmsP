@@ -44,7 +44,7 @@ def plot_dataset_impact(df, data_size: int = DEFAULT_DATA_SIZE, cores: int = DEF
     subset_df = subset_df[subset_df["cores"] == cores]
 
     if subset_df.empty:
-        print(f"  Brak danych dla rozmiaru={resolved_size}, rdzeni={cores}, pomijam.")
+        print(f"  Brak danych dla rozmiaru={resolved_size}, jednostek={cores}, pomijam.")
         return
 
     fig, ax = create_figure()
@@ -57,9 +57,17 @@ def plot_dataset_impact(df, data_size: int = DEFAULT_DATA_SIZE, cores: int = DEF
         algorithm_df = filter_algorithm(subset_df, algorithm)
 
         values = []
+        errors = []
+
         for dataset in datasets:
             row = algorithm_df[algorithm_df["dataset"] == dataset]
-            values.append(row["avg_time"].mean() if not row.empty else np.nan)
+
+            if not row.empty:
+                values.append(row["avg_time"].mean())
+                errors.append(row["std_time"].mean())
+            else:
+                values.append(np.nan)
+                errors.append(np.nan)
 
         offset = (i - (n_algorithms - 1) / 2) * bar_width
 
@@ -67,6 +75,8 @@ def plot_dataset_impact(df, data_size: int = DEFAULT_DATA_SIZE, cores: int = DEF
             x + offset,
             values,
             width=bar_width,
+            yerr=errors,
+            capsize=4,
             label=algorithm,
             color=ALGORITHM_COLORS.get(algorithm),
         )
@@ -77,7 +87,7 @@ def plot_dataset_impact(df, data_size: int = DEFAULT_DATA_SIZE, cores: int = DEF
 
     ax.set_title(
         f"Wpływ rodzaju danych wejściowych na czas wykonania\n"
-        f"{resolved_size:,} elementów, {cores} rdzeni"
+        f"{resolved_size:,} elementów, {cores} jednostek wykonawczych"
     )
     ax.set_xlabel("Rodzaj danych")
     ax.set_ylabel("Czas wykonania [s]")
@@ -118,7 +128,7 @@ def plot_sortedness_impact(df, data_size: int = DEFAULT_DATA_SIZE, cores: int = 
 
         if subset_df.empty:
             print(f"  Brak danych dla typu '{data_type}' przy rozmiarze={resolved_size}, "
-                  f"rdzeni={cores}, pomijam.")
+                  f"jednostek wykonawczych={cores}, pomijam.")
             continue
 
         fig, ax = create_figure()
@@ -128,6 +138,7 @@ def plot_sortedness_impact(df, data_size: int = DEFAULT_DATA_SIZE, cores: int = 
 
             percents = []
             times = []
+            errors = []
 
             for percent, dataset in points:
                 row = algorithm_df[algorithm_df["dataset"] == dataset]
@@ -137,21 +148,24 @@ def plot_sortedness_impact(df, data_size: int = DEFAULT_DATA_SIZE, cores: int = 
 
                 percents.append(percent)
                 times.append(row["avg_time"].mean())
+                errors.append(row["std_time"].mean())
 
             if not percents:
                 continue
 
-            ax.plot(
+            ax.errorbar(
                 percents,
                 times,
+                yerr=errors,
                 label=algorithm,
                 color=ALGORITHM_COLORS.get(algorithm),
                 marker="o",
+                capsize=4,
             )
 
         ax.set_title(
             f"Wpływ stopnia posortowania danych ({data_type})\n"
-            f"{resolved_size:,} elementów, {cores} rdzeni"
+            f"{resolved_size:,} elementów, {cores} jednostek wykonawczych"
         )
         ax.set_xlabel("Stopień posortowania danych [%]")
         ax.set_ylabel("Czas wykonania [s]")

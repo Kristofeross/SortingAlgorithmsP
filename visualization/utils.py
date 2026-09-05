@@ -44,6 +44,9 @@ from visualization.config import (
     SCALABILITY_TABLE_DIR,
     RESOURCES_TABLE_DIR,
     DATASETS_TABLE_DIR,
+    BEST_EXECUTION_TIME_TABLE_DIR,
+
+    RAW_RESULTS_DIR,
 
     EXPORT_FORMATS,
     FIGURE_SIZE,
@@ -104,6 +107,9 @@ def create_results_directories() -> None:
         SCALABILITY_TABLE_DIR,
         RESOURCES_TABLE_DIR,
         DATASETS_TABLE_DIR,
+        BEST_EXECUTION_TIME_TABLE_DIR,
+
+        RAW_RESULTS_DIR,
     ]
 
     for directory in directories:
@@ -140,6 +146,12 @@ def close_plot(fig) -> None:
 
 
 def finish_plot(fig, ax, directory: Path, filename: str, subfolder: str = None) -> None:
-    apply_plot_style(ax)
+    if isinstance(ax, (list, tuple)):
+        for current_ax in ax:
+            apply_plot_style(current_ax)
+    else:
+        apply_plot_style(ax)
+
     save_plot(fig=fig, directory=directory, filename=filename, subfolder=subfolder)
+
     close_plot(fig)

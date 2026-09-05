@@ -17,11 +17,7 @@ def export_table(
     csv_path = directory / f"{filename}.csv"
     tex_path = directory / f"{filename}.tex"
 
-    df.to_csv(
-        csv_path,
-        index=False,
-        float_format="%.4f",
-    )
+    df.to_csv(csv_path, index=False, float_format="%.4f")
 
     latex = df.to_latex(
         index=False,
@@ -37,3 +33,7 @@ def export_table(
 
     print(f"  Zapisano: {csv_path}")
     print(f"  Zapisano: {tex_path}")
+
+
+def format_mean_std(mean: float, std: float) -> str:
+    return f"{mean:.4f} ± {std:.4f}"

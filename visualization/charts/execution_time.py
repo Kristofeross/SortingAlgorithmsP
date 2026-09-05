@@ -7,24 +7,9 @@ from visualization.config import (
 from visualization.loader import load_all, get_algorithms, get_data_sizes, get_datasets
 from visualization.utils import create_figure, finish_plot
 from visualization.style import use_log_scale_x, use_log_scale_y, set_clean_ticks, format_log_axis_plain
-from visualization.filters import (
-    filter_algorithm, filter_dataset, filter_parallel, filter_sequential, sort_by_data_size,
-)
+from visualization.filters import filter_algorithm, filter_dataset, filter_parallel, filter_sequential, sort_by_data_size
 
 
-# -----------------------------------------------------------------------
-# WYKRESY GŁÓWNE
-#
-# Te wykresy mają odpowiedzieć na podstawowe pytania badawcze (czas vs
-# rozmiar, czas vs rdzenie, sequential vs parallel, ranking algorytmów).
-# Nie porównują charakteru danych wejściowych - do tego służy osobny
-# moduł charts/datasets.py. Dlatego wszystkie poniższe funkcje operują
-# tylko na jednym, reprezentatywnym zbiorze danych: DEFAULT_DATASET.
-# Dzięki temu z 4 funkcji powstają 4 pliki, a nie 4 x liczba zbiorów danych.
-# -----------------------------------------------------------------------
-
-
-# Wykres: czas wykonania względem rozmiaru danych
 def plot_execution_time_vs_data_size(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Execution Time vs Data Size")
 
@@ -72,7 +57,6 @@ def plot_execution_time_vs_data_size(df, dataset: str = DEFAULT_DATASET):
     finish_plot(fig, ax, EXECUTION_TIME_VS_DATA_SIZE_DIR, filename, subfolder=dataset)
 
 
-# Wykres: czas wykonania względem liczby rdzeni
 def plot_execution_time_vs_cores(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Execution Time vs Cores")
 
@@ -117,10 +101,10 @@ def plot_execution_time_vs_cores(df, dataset: str = DEFAULT_DATASET):
 
     dataset_label = DATASET_LABELS.get(dataset, dataset)
     ax.set_title(
-        f"Czas wykonania w zależności od liczby rdzeni\n"
+        f"Czas wykonania w zależności od liczby jednostek wykonawczych\n"
         f"{dataset_label}, {max_size:,} elementów"
     )
-    ax.set_xlabel("Liczba rdzeni")
+    ax.set_xlabel("Liczba jednostek wykonawczych")
     ax.set_ylabel("Czas wykonania [s]")
 
     filename = "execution_time_vs_cores_" + dataset
@@ -128,9 +112,6 @@ def plot_execution_time_vs_cores(df, dataset: str = DEFAULT_DATASET):
     finish_plot(fig, ax, EXECUTION_TIME_VS_CORES_DIR, filename, subfolder=dataset)
 
 
-# Wykres: Sequential vs Parallel (jeden plik na algorytm - to jedyny
-# wykres w tym module, który celowo generuje więcej niż 1 plik, bo
-# porównuje coś w obrębie jednego algorytmu, nie między zbiorami danych)
 def plot_sequential_vs_parallel(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Sequential vs Parallel")
 
@@ -163,18 +144,22 @@ def plot_sequential_vs_parallel(df, dataset: str = DEFAULT_DATASET):
 
         fig, ax = create_figure()
 
-        ax.plot(
+        ax.errorbar(
             sequential_df["data_size"],
             sequential_df["avg_time"],
+            yerr=sequential_df["std_time"],
             label="Sekwencyjnie",
             marker="o",
+            capsize=4,
         )
 
-        ax.plot(
+        ax.errorbar(
             parallel_df["data_size"],
             parallel_df["avg_time"],
-            label=f"Równolegle ({max_cores} rdzeni)",
+            yerr=parallel_df["std_time"],
+            label=f"Równolegle ({max_cores} jednostek wykonawczych)",
             marker="s",
+            capsize=4,
         )
 
         use_log_scale_x(ax)
@@ -195,11 +180,6 @@ def plot_sequential_vs_parallel(df, dataset: str = DEFAULT_DATASET):
         finish_plot(fig, ax, EXECUTION_TIME_SEQUENTIAL_VS_PARALLEL_DIR, filename, subfolder=dataset)
 
 
-# Wykres: ranking końcowy algorytmów (porównanie) dla KAŻDEJ
-# kombinacji (rozmiar danych, liczba rdzeni) obecnej w bazie - nie
-# tylko dla maksymalnej liczby rdzeni per rozmiar. Każda kombinacja
-# ląduje w podfolderze {dataset}/{rozmiar}/, żeby dało się to
-# sensownie przeglądać mimo dużej liczby plików.
 def plot_algorithm_comparison(df, dataset: str = DEFAULT_DATASET):
     print("Generowanie: Algorithm Comparison")
 
@@ -225,8 +205,7 @@ def plot_algorithm_comparison(df, dataset: str = DEFAULT_DATASET):
         comparison_df = (
             combo_df
             .groupby("algorithm", as_index=False)
-            ["avg_time"]
-            .mean()
+            .agg(avg_time=("avg_time", "mean"), std_time=("std_time", "mean"))
             .sort_values("avg_time")
         )
 
@@ -243,12 +222,14 @@ def plot_algorithm_comparison(df, dataset: str = DEFAULT_DATASET):
         ax.bar(
             comparison_df["algorithm"],
             comparison_df["avg_time"],
+            yerr=comparison_df["std_time"],
+            capsize=5,
             color=colors,
         )
 
         ax.set_title(
             f"Porównanie algorytmów (ranking)\n"
-            f"{dataset_label}, {size:,} elementów, {cores} rdzeni"
+            f"{dataset_label}, {size:,} elementów, {cores} jednostek wykonawczych"
         )
         ax.set_xlabel("Algorytm")
         ax.set_ylabel("Czas wykonania [s]")

@@ -16,6 +16,9 @@ SUMMARY_TABLE_DIR = TABLES_DIR / "summary"
 SCALABILITY_TABLE_DIR = TABLES_DIR / "scalability"
 RESOURCES_TABLE_DIR = TABLES_DIR / "resources"
 DATASETS_TABLE_DIR = TABLES_DIR / "datasets"
+BEST_EXECUTION_TIME_TABLE_DIR = TABLES_DIR / "best_execution_time"
+
+RAW_RESULTS_DIR = TABLES_DIR / "raw"
 
 # Chart catalogs
 EXECUTION_TIME_DIR = CHARTS_DIR / "execution_time"
@@ -67,15 +70,15 @@ MARKER_SIZE = 8
 GRID_ALPHA = 0.30
 
 # Fonts
-TITLE_SIZE = 18
-LABEL_SIZE = 14
-TICK_SIZE = 12
-LEGEND_SIZE = 11
+TITLE_SIZE = 24
+LABEL_SIZE = 20
+TICK_SIZE = 18
+LEGEND_SIZE = 14
 
 # Dataset Labels
 DATASET_LABELS = {
-    "random_int": "Losowe liczby całkowite",
-    "random_float": "Losowe liczby zmiennoprzecinkowe",
+    "random_int": "Losowe liczby (int)",
+    "random_float": "Losowe liczby (float)",
 
     "duplicates_int": "Duplikaty (int)",
     "duplicates_float": "Duplikaty (float)",

@@ -57,11 +57,11 @@ def plot_execution_time_heatmap(df, dataset: str = DEFAULT_DATASET):
         ax.set_yticks(range(len(data_sizes)))
         ax.set_yticklabels([f"{size:,}" for size in data_sizes])
 
-        ax.set_xlabel("Liczba rdzeni")
+        ax.set_xlabel("Liczba jednostek wykonawczych")
         ax.set_ylabel("Rozmiar danych")
         ax.set_title(
             f"{algorithm}\n"
-            f"Czas wykonania: rozmiar danych x liczba rdzeni\n"
+            f"Czas wykonania: rozmiar danych × liczba jednostek wykonawczych\n"
             f"{dataset_label}"
         )
 
