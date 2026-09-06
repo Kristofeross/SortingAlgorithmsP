@@ -146,6 +146,25 @@ def choose_pivots(samples, process_count):
     return deduped
 
 
+# version without NumPy
+# def distribute_to_buckets(data, pivots):
+#     if not pivots:
+#         return [list(data)]
+#
+#     buckets = [[] for _ in range(len(pivots) + 1)]
+#
+#     for value in data:
+#         index = 0
+#
+#         while index < len(pivots) and value >= pivots[index]:
+#             index += 1
+#
+#         buckets[index].append(value)
+#
+#     return buckets
+
+
+# version with NumPy
 def distribute_to_buckets(data, pivots):
     if not pivots:
         return [list(data)]
