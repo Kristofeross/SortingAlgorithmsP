@@ -6,7 +6,7 @@ from core.menu import print_separator
 from core.config import ALGORITHMS, DATA_TABLES, DATA_SIZES
 from core.hardware import get_system_info, get_available_cores
 from core.results_database import create_results_table, create_system_info_table, save_system_info, save_benchmark_result
-
+from core.diagnostic_runner import run_process_diagnostics
 
 USE_LOGICAL_CORES = True
 
@@ -152,3 +152,7 @@ def run_auto_benchmarks():
     print_separator()
     print("Wszystkie testy zakończone")
     print_separator()
+
+    print("Diagnostyka")
+    run_process_diagnostics()
+    print("Diagnostyka zakończona")

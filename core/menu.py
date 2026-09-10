@@ -110,6 +110,7 @@ def choose_cores():
 
 def choose_program_mode():
     print("1. Benchmark automatyczny pełny")
-    # print("2. Benchmark automatyczny demo")
+    print("2. Diagnostyka procesów")
+    print("3. Benchmark automatyczny demo")
 
     return input("Wybierz tryb: ")
