@@ -15,7 +15,7 @@ if __name__ == "__main__":
     # show_problem_results()
     # count_results()
 
-    # show_process_diagnostics()
+    show_process_diagnostics()
     # show_process_diagnostic_events(5)
-    show_process_diagnostic_events_compact(14)
+    # show_process_diagnostic_events_compact(14)
     # clear_process_diagnostics()

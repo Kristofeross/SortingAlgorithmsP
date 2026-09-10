@@ -718,8 +718,7 @@ def show_process_diagnostics(limit=20, db_path=DB_PATH,):
             max_worker_startup_time,
             total_worker_startup_time,
 
-            correctness,
-            created_at
+            correctness
 
         FROM process_diagnostics ORDER BY id DESC LIMIT ?
         """,
@@ -787,7 +786,6 @@ def show_process_diagnostics(limit=20, db_path=DB_PATH,):
             Suma:                       {format_time(row["total_worker_startup_time"])}
 
             Poprawność:                 {row["correctness"]}
-            Data zapisu:                {row["created_at"]}
             ----------------------------------------
             """
         )
