@@ -360,9 +360,7 @@ def print_summary( algorithm_name, cores, max_depth, events, result, expected, d
         else None
     )
 
-    print_separator()
-    print("Podsumowanie diagnostyczne")
-    print_separator()
+    print("\nPodsumowanie diagnostyczne:\n")
 
     print(f"Algorytm: {algorithm_name}")
     print(f"Zestaw danych: {dataset}")
@@ -479,17 +477,13 @@ def run_single_diagnostic(algorithm_name, algorithm_config, data, cores, dataset
     if parameter_type == "max_depth":
         max_depth = int(math.log2(cores))
 
-    print_separator()
-    print("DIAGNOSTYKA PROCESÓW")
+    print("\nDiagnostyka procesów")
     print_separator()
 
     print(f"Algorytm: {algorithm_name}")
     print(f"Dane: {dataset}")
     print(f"Rozmiar: {len(data)}")
     print(f"cores: {cores}")
-
-    if max_depth is not None:
-        print(f"max_depth: {max_depth}")
 
     expected = sorted(data)
 
@@ -546,17 +540,13 @@ def run_single_diagnostic(algorithm_name, algorithm_config, data, cores, dataset
 
     save_process_diagnostic_events(diagnostic_id=diagnostic_id, events=events,)
 
-    print(f"\nDiagnostyka zapisana w bazie danych (ID={diagnostic_id})")
-
     return events
 
 
 def run_process_diagnostics():
     create_process_diagnostics_tables()
 
-    print_separator()
     print("Test diagnostyczny procesów")
-    print_separator()
 
     for scenario in DIAGNOSTIC_SCENARIOS:
         validate_scenario(scenario)
@@ -566,14 +556,12 @@ def run_process_diagnostics():
         cores_list = scenario["cores"]
         algorithm_names = scenario["algorithms"]
 
-        print_separator()
         print(
             f"Scenariusz: "
             f"{dataset}, "
             f"{data_size}, "
             f"cores={cores_list}"
         )
-        print_separator()
 
         data = get_data_from_db(dataset, data_size,)
 
@@ -595,9 +583,7 @@ def run_process_diagnostics():
                     data_size=data_size,
                 )
 
-    print_separator()
     print("Diagnostyka zakończona")
-    print_separator()
 
 
 if __name__ == "__main__":
