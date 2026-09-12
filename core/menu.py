@@ -112,5 +112,7 @@ def choose_program_mode():
     print("1. Benchmark automatyczny pełny")
     print("2. Diagnostyka procesów")
     print("3. Benchmark automatyczny demo")
+    print("4. Sprawdzenie testów")
+    print("5. Sprawdzenie diagnostyki")
 
     return input("Wybierz tryb: ")

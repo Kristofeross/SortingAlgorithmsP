@@ -147,43 +147,43 @@ def choose_pivots(samples, process_count):
 
 
 # version without NumPy
-# def distribute_to_buckets(data, pivots):
-#     if not pivots:
-#         return [list(data)]
-#
-#     buckets = [[] for _ in range(len(pivots) + 1)]
-#
-#     for value in data:
-#         index = 0
-#
-#         while index < len(pivots) and value >= pivots[index]:
-#             index += 1
-#
-#         buckets[index].append(value)
-#
-#     return buckets
-
-
-# version with NumPy
 def distribute_to_buckets(data, pivots):
     if not pivots:
         return [list(data)]
 
-    arr = np.asarray(data)
-    pivots_arr = np.asarray(pivots)
+    buckets = [[] for _ in range(len(pivots) + 1)]
 
-    indices = np.searchsorted(pivots_arr, arr, side='right')
+    for value in data:
+        index = 0
 
-    order = np.argsort(indices, kind='stable')
-    sorted_indices = indices[order]
-    sorted_values = arr[order]
-    boundaries = np.searchsorted(sorted_indices, np.arange(len(pivots) + 2))
+        while index < len(pivots) and value >= pivots[index]:
+            index += 1
 
-    buckets = []
-    for i in range(len(pivots) + 1):
-        buckets.append(sorted_values[boundaries[i]:boundaries[i + 1]].tolist())
+        buckets[index].append(value)
 
     return buckets
+
+
+# version with NumPy
+# def distribute_to_buckets(data, pivots):
+#     if not pivots:
+#         return [list(data)]
+#
+#     arr = np.asarray(data)
+#     pivots_arr = np.asarray(pivots)
+#
+#     indices = np.searchsorted(pivots_arr, arr, side='right')
+#
+#     order = np.argsort(indices, kind='stable')
+#     sorted_indices = indices[order]
+#     sorted_values = arr[order]
+#     boundaries = np.searchsorted(sorted_indices, np.arange(len(pivots) + 2))
+#
+#     buckets = []
+#     for i in range(len(pivots) + 1):
+#         buckets.append(sorted_values[boundaries[i]:boundaries[i + 1]].tolist())
+#
+#     return buckets
 
 
 def flatten_buckets(buckets):

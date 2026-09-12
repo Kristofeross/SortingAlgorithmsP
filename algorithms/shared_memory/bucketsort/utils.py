@@ -94,63 +94,63 @@ def destroy_shared_memory(shm):
     shm.unlink()
 
 # version without NumPy
-# def distribute_to_buckets(arr, bucket_count):
-#     if len(arr) == 0:
-#         return []
-#
-#     min_value = min(arr)
-#     max_value = max(arr)
-#
-#     if min_value == max_value:
-#         buckets = [[] for _ in range(bucket_count)]
-#         buckets[0] = list(arr)
-#
-#         return buckets
-#
-#     bucket_range = (max_value - min_value) / bucket_count
-#
-#     buckets = [[] for _ in range(bucket_count)]
-#
-#     for value in arr:
-#         index = min(
-#             bucket_count - 1,
-#             int((value - min_value) / bucket_range)
-#         )
-#
-#         buckets[index].append(value)
-#
-#     return buckets
-
-# version with NumPy - more optimized
 def distribute_to_buckets(arr, bucket_count):
     if len(arr) == 0:
         return []
 
-    arr_np = np.asarray(arr)
-    min_value = arr_np.min()
-    max_value = arr_np.max()
+    min_value = min(arr)
+    max_value = max(arr)
 
     if min_value == max_value:
         buckets = [[] for _ in range(bucket_count)]
         buckets[0] = list(arr)
+
         return buckets
 
     bucket_range = (max_value - min_value) / bucket_count
-    indices = np.minimum(
-        bucket_count - 1,
-        ((arr_np - min_value) / bucket_range).astype(np.int64)
-    )
-
-    order = np.argsort(indices, kind='stable')
-    sorted_indices = indices[order]
-    sorted_values = arr_np[order]
 
     buckets = [[] for _ in range(bucket_count)]
-    boundaries = np.searchsorted(sorted_indices, np.arange(bucket_count + 1))
-    for i in range(bucket_count):
-        buckets[i] = sorted_values[boundaries[i]:boundaries[i + 1]].tolist()
+
+    for value in arr:
+        index = min(
+            bucket_count - 1,
+            int((value - min_value) / bucket_range)
+        )
+
+        buckets[index].append(value)
 
     return buckets
+
+# version with NumPy - more optimized
+# def distribute_to_buckets(arr, bucket_count):
+#     if len(arr) == 0:
+#         return []
+#
+#     arr_np = np.asarray(arr)
+#     min_value = arr_np.min()
+#     max_value = arr_np.max()
+#
+#     if min_value == max_value:
+#         buckets = [[] for _ in range(bucket_count)]
+#         buckets[0] = list(arr)
+#         return buckets
+#
+#     bucket_range = (max_value - min_value) / bucket_count
+#     indices = np.minimum(
+#         bucket_count - 1,
+#         ((arr_np - min_value) / bucket_range).astype(np.int64)
+#     )
+#
+#     order = np.argsort(indices, kind='stable')
+#     sorted_indices = indices[order]
+#     sorted_values = arr_np[order]
+#
+#     buckets = [[] for _ in range(bucket_count)]
+#     boundaries = np.searchsorted(sorted_indices, np.arange(bucket_count + 1))
+#     for i in range(bucket_count):
+#         buckets[i] = sorted_values[boundaries[i]:boundaries[i + 1]].tolist()
+#
+#     return buckets
 
 
 def flatten_buckets(buckets):
