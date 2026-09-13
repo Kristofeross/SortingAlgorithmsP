@@ -979,6 +979,22 @@ def clear_results(db_path=DB_PATH):
     print("\n=== Baza wyników została wyczyszczona ===")
 
 
+def clear_algorithm_results(algorithm_name, db_path=DB_PATH):
+    conn = get_connection(db_path)
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM benchmark_results WHERE algorithm = ?", (algorithm_name,))
+
+    deleted_count = cursor.rowcount
+
+    conn.commit()
+    conn.close()
+
+    print(f"\nUsunięto {deleted_count} wyników dla algorytmu: {algorithm_name}")
+
+    return deleted_count
+
+
 def clear_process_diagnostics(db_path=DB_PATH):
     conn = get_connection(db_path)
     cursor = conn.cursor()

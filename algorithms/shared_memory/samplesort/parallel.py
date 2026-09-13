@@ -4,7 +4,7 @@ import uuid
 
 from .utils import (
     attach_shared_array, create_shared_array, destroy_shared_memory, split_ranges, select_samples, choose_pivots, distribute_to_buckets,
-    flatten_buckets, split_bucket_ranges, sort_bucket, should_run_parallel, get_group_size_cutoff, get_parallel_size_cutoff,
+    flatten_buckets, split_bucket_ranges, sort_bucket, should_run_parallel, should_spawn_for_group, get_group_size_cutoff, get_parallel_size_cutoff,
 )
 from .sequential import sample_sort
 from core.process_diagnostics import log_event
@@ -165,7 +165,7 @@ def parallel_sample_sort(data, process_count, event_queue=None,):
             parent_pid=os.getpid(),
         )
 
-        result = sample_sort(data)
+        result = sample_sort(data, process_count)
 
         log_event(
             event_queue,
@@ -294,7 +294,7 @@ def parallel_sample_sort(data, process_count, event_queue=None,):
 
             group_size = group_end - group_start + 1
 
-            if group_size > group_cutoff:
+            if should_spawn_for_group(group_size, process_count):
                 spawn_id = uuid.uuid4().hex if event_queue is not None else None
 
                 process = mp.Process(

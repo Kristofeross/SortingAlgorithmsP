@@ -12,14 +12,11 @@ def main():
     mode = choose_program_mode()
 
     if mode == "1":
-        # run_auto_benchmarks()
-        print("Nie to")
+        run_auto_benchmarks()
     elif mode == "2":
-        # run_process_diagnostics()
-        print("Nie to")
+        run_process_diagnostics()
     elif mode == "3":
-        # run_quick_auto_benchmarks()
-        print("Nie to")
+        run_quick_auto_benchmarks()
     elif mode == "4":
         show_algorithm_summary()
         show_timeout_tests()
