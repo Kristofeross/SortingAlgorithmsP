@@ -18,13 +18,6 @@ PARALLEL_SIZE_CUTOFF = {
     16: 200_000,
     32: 200_000,
 }
-# GROUP_SIZE_CUTOFF = {
-#     2: 50_000,
-#     4: 50_000,
-#     8: 50_000,
-#     16: 100_000,
-#     32: 100_000,
-# }
 GROUP_SIZE_CUTOFF = {
     2: 2_000,
     4: 2_000,
@@ -51,14 +44,6 @@ def get_group_size_cutoff(process_count):
 
     return cutoff
 
-
-# def should_run_parallel(data_size, process_count):
-#     if data_size < process_count * get_parallel_size_cutoff(process_count):
-#         return False
-#     if (data_size // process_count) < get_group_size_cutoff(process_count):
-#         return False
-#
-#     return True
 
 def should_run_parallel(data_size, process_count):
     return data_size > get_parallel_size_cutoff(process_count)

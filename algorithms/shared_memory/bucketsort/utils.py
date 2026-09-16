@@ -17,7 +17,6 @@ PARALLEL_SIZE_CUTOFF = {
     16: 200_000,
     32: 200_000,
 }
-
 GROUP_SIZE_CUTOFF = {
     2: 2_000,
     4: 2_000,
